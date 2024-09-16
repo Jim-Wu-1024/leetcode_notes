@@ -148,5 +148,48 @@ class Solution:
 
 ```
 
+## Spiral Matrix II
 
+`O(n)`
 
+Simulate the process of drawing a matrix in a clockwise direction:
+1. Fill the top row from left to right
+2. Fill the right column form top to bottom
+3. Fill the bottom row from right to left
+4. Fill the left column form bottom to top
+Continue this process in concentric circles form the outside in. For each of the four sides, we need to determine how to draw them, ensuring that each side adheres to **consistent left-closed, right-open interval**.
+
+```python
+class Solution:
+    def generateMatrix(self, n: int) -> List[List[int]]:
+        matrix = [[0] * n for _ in range(n)]
+        loop, mid = n // 2, n // 2
+        row, col = 0, 0
+        num = 1
+
+        for offset in range(1, loop + 1):
+            # from left to right
+            for i in range(col, n - offset):
+                matrix[row][i] = num
+                num += 1
+            # from top to bottom
+            for i in range(row, n - offset):
+                matrix[i][n - offset] = num
+                num += 1
+            # from right to left
+            for i in range(n - offset, col, -1):
+                matrix[n - offset][i] = num
+                num += 1
+            # from bottom to top
+            for i in range(n - offset, row, -1):
+                matrix[i][col] = num
+                num += 1
+            row += 1
+            col += 1
+        
+        if n % 2 != 0:
+            matrix[mid][mid] = num
+        
+        return matrix
+
+```
