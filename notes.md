@@ -100,3 +100,53 @@ class Solution:
             end -= 1
         return ret
 ```
+
+## Minimum Size Subarray Sum
+
+**Input**: target = 7, nums = [2,3,1,2,4,3]
+
+**Output**: 2
+
+**Explanation**: The subarray [4,3] has the minimal length under the problem constraint.
+
+**Solution strategy**: `O(n)`
+
+The **sliding window technique** involves continuously adjusting the starting and ending positions of a subsequence to derive the desired result.
+
+The **sliding window** can also be understood as a type of **two-pointer technique**.
+
+1. **What is inside the window**
+   
+   The window is defined as the minimum length of a contiguous subarray whose sum is `>= target`.
+
+2. **How to move the starting position of window**
+
+   If the current window's sum is greater than or equal to `target`, the starting position of window should move forward (i.e., the window should be shrunk).
+
+3. **How to move the ending position of the window**
+
+   The ending position of window is represented by the pointer that traverses the array, which corresponds to the index in the `for` loop. 
+
+
+```python
+class Solution:
+    def minSubArrayLen(self, target: int, nums: List[int]) -> int:
+        start, end = 0, 0
+        size = len(nums)
+        min_len = float('inf')
+        cur_sum = 0
+
+        while end < size:
+            cur_sum += nums[end]
+
+            while cur_sum >= target:
+                min_len = min(min_len, end - start + 1)
+                cur_sum -= nums[start]
+                start += 1
+            end += 1
+        return min_len if min_len != float('inf') else 0 
+
+```
+
+
+
