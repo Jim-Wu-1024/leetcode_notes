@@ -1,4 +1,6 @@
-# Binary Search
+# Array
+
+## Binary Search
 
 **Constrains**:
 - All integers in `nums` are unique
@@ -26,7 +28,7 @@ class Solution:
         
 ```
 
-# Remove Element
+## Remove Element
 
 Input: nums = [0,1,2,2,3,0,4,2], val = 2
 
@@ -68,4 +70,33 @@ class solution:
                 slow += 1
             fast += 1
 
+```
+
+## Squares of a Sorted Array  
+
+**solution strategy**:  `O(n)`
+
+The array is sorted; negative numbers may have larger squares.
+
+Thus, the maximum squares are at the two ends of the array, not in the middle.
+
+We can use the **two-pointer technique**, with `i` at the start and `j` at the end.
+
+We create a new array `result`· of the same size as `A`·, with `k` pointing to the end of `result`.
+
+```python
+class Solution:
+    def sortedSquares(self, nums: List[int]) -> List[int]:
+        left, right, end = 0, len(nums) - 1, len(nums) - 1
+        ret = [0] * len(nums)
+
+        while end >= 0:
+            if nums[left] ** 2 > nums[right] ** 2:
+                ret[end] = nums[left] ** 2
+                left += 1
+            else: 
+                ret[end] = nums[right] ** 2
+                right -= 1
+            end -= 1
+        return ret
 ```
