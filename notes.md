@@ -30,9 +30,9 @@ class Solution:
 
 ## Remove Element
 
-Input: nums = [0,1,2,2,3,0,4,2], val = 2
+Input: nums = [0,1,2,2,3,0,4,2], val = 2 (in-place)
 
-Output: 5 (nums = [0,1,4,0,3,_,_,_])
+Output: 5 (nums = [0,1,4,0,3,\_,\_,\_])
 
 **Solution**
 
@@ -193,3 +193,86 @@ class Solution:
         return matrix
 
 ```
+
+## Interval Sum
+
+**The prefix sum** is very useful when it comes to calculating range sums.
+
+```python
+class Solution:
+    def intervalSum(self, nums: List[int], intervals: List[tuple]) -> List[int]:
+        pre_sum = []
+        sum = 0
+
+        for i in range(len(nums)):
+            sum += nums[i]
+            pre_sum.append(sum)
+        
+        results = []
+        for start, end in intervals:
+            if start == 0:
+                result.append(pre_sum[end])
+            else:
+                result.append(pre_sum[end] - pre_sum[start - 1])
+        return result
+```
+
+# Linked List
+
+## Remove Elements
+```python
+# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+class Solution:
+    def removeElements(self, head: Optional[ListNode], val: int) -> Optional[ListNode]:
+        cur = head
+        pre = None
+        while cur != None:
+            if cur.val == val:
+                if cur == head:  ## Head node
+                    pre = cur
+                    cur = cur.next
+                    head = cur
+                    del pre
+                    pre = None
+                elif cur.next == None:  # Tail Node
+                    pre.next = None
+                    del cur
+                    cur = None
+                else:
+                    pre.next = cur.next
+                    temp = cur
+                    cur = cur.next
+                    del temp
+                    temp = None
+            else:
+                pre = cur
+                cur = cur.next
+        return head
+```
+
+A more streamlined version of the code.
+```python
+# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+
+class Solution:
+    def removeElements(self, head: Optional[ListNode], val: int) -> Optional[ListNode]:
+        # A dummy head node is created to simplify handling of edge cases, particularly when removing nodes at the beginning of the list
+        dummy_head = ListNode(next=head)
+
+        cur = dummy_head
+        while cur.next != None:
+            if cur.next.val == val:
+                cur.next = cur.next.next
+            else:
+                cur = cur.next
+        return dummy_head.next
+```
+ 
