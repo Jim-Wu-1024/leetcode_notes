@@ -346,3 +346,167 @@ class MyLinkedList:
         
         return pre  # pre will be the new head of the reversed list
  ```
+
+ ## Swap Nodes in Pairs
+
+ ```python
+#  class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+
+class Solution:
+    def swapPairs(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        # Create a dummy node to make edge cases easier (e.g., list has only one element)
+        dummy_head = ListNode(val=0, next=head)
+        pre = dummy_head
+        cur = head
+
+        # Loop through the list while there are pairs to swap
+        while cur and cur.next:
+            nex = cur.next
+            
+            # Perform the swap
+            pre.next = nex
+            cur.next = nex.next
+            nex.next = cur
+            
+            # Move the pointers forward for the next pair
+            pre = cur
+            cur = cur.next
+
+        # Return the next node of dummy_head, which is the new head of the list
+        return dummy_head.next
+ ```
+
+ ## Remove Nth Node From End of List
+
+ **Solution**: `O(n)`
+
+1. **Use Two Pointers**: Solve this problem in one pass using two pointers, a fast and a slow pointer, known as the "two-pointer technique".
+
+2. **Move the Fast Pointer**: Initially, advance the fast pointer by n nodes to create a gap between the fast and the slow pointers. This gap helps in identifying the nth node from the end as when the fast pointer reaches the end of the list `(None)`, the slow pointer will be just before the nth node from the end.
+
+3. **Move Both Pointers Together**: Once the fast pointer is n nodes ahead, move both pointers simultaneously until the fast pointer reaches the end of the list. At this point, the slow pointer will be positioned right before the node to be removed.
+
+4. **Remove the Node**: Modify the next pointer of the slow pointer to skip the node that needs to be removed by setting `slow.next` to `slow.next.next`. This effectively removes the desired node from the list.
+
+```python
+# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+class Solution:
+    def removeNthFromEnd(self, head: Optional[ListNode], n: int) -> Optional[ListNode]:
+        dummy_head = ListNode(val=0, next=head)
+        slow = fast = dummy_head
+
+        for _ in range(n + 1):
+            fast = fast.next
+
+        while fast:
+            fast = fast.next
+            slow = slow.next
+
+        slow.next = slow.next.next
+
+        return dummy_head.next
+```
+
+## Intersection of Two Linked List
+`Time: O(m+n); Space: O(1)`
+
+1. 
+```python
+# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, x):
+#         self.val = x
+#         self.next = None
+
+class Solution:
+    def getIntersectionNode(self, headA: ListNode, headB: ListNode) -> Optional[ListNode]:
+        curA = headA
+        curB = headB
+
+        la = self.getLength(headA)
+        lb = self.getLength(headB)
+
+        if la > lb:
+            for _ in range(la - lb):
+                curA = curA.next
+        
+        if lb > la:
+            for _ in range(lb - la):
+                curB = curB.next
+
+        while curA is not curB:
+            curA = curA.next
+            curB = curB.next
+
+        return curA
+
+    def getLength(self, head: ListNode) -> int:
+        l = 0
+        while head:
+            l += 1
+            head = head.next
+        return l
+```
+2. 
+```python
+class Solution:
+    def getIntersectionNode(self, headA: ListNode, headB: ListNode) -> Optional[ListNode]:
+        curA = headA
+        curB = headB
+
+        while curA is not curB:
+            curA = curA.next if curA else headB
+            curB = curB.next if curB else headA
+
+        return curA
+```
+
+## Linked List Cycle II
+
+**Solution**: 
+
+**Floyd's Cycle Detection Algorithm**
+
+1. **Two Pointers at Different Speeds**: Use two pointers, slow and fast. The slow pointer moves one step at a time, while the fast pointer moves two steps at a time.
+2. **Detection Phase**: If there is a cycle, the fast pointer will eventually meet the slow pointer within the cycle.
+3. **Finding the Start of the Cycle**: Once a cycle is detected (when slow meets fast), move one pointer to the head of the list and keep the other at the meeting point. Then move both pointers one step at a time. The point where they meet again is the start of the cycle.
+
+```python
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+
+class Solution:
+    def detectCycle(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        if not head or not head.next:
+            return None
+
+        slow = fast = head
+        has_cycle = False
+
+        # Detection phase
+        while fast and fast.next:
+            slow = slow.next
+            fast = fast.next.next
+            if slow == fast:
+                has_cycle = True
+                break
+
+        # Finding the start of the cycle
+        if has_cycle:
+            slow = head
+            while slow != fast:
+                slow = slow.next
+                fast = fast.next
+            return slow
+
+        return None
+```
