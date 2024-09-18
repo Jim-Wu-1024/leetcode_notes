@@ -329,3 +329,20 @@ class MyLinkedList:
         cur.next = cur.next.next
         self.size -= 1 
  ```
+
+ ## Reverse Linked List
+
+ ```python
+ class Solution:
+    def reverseList(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        pre = None
+        cur = head
+
+        while cur is not None:
+            nex = cur.next  # Save the next node
+            cur.next = pre  # Reverse the current node's pointer
+            pre = cur       # Move `pre` to the current node
+            cur = nex       # Move to the next node
+        
+        return pre  # pre will be the new head of the reversed list
+ ```
