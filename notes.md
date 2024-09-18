@@ -476,7 +476,22 @@ class Solution:
 
 1. **Two Pointers at Different Speeds**: Use two pointers, slow and fast. The slow pointer moves one step at a time, while the fast pointer moves two steps at a time.
 2. **Detection Phase**: If there is a cycle, the fast pointer will eventually meet the slow pointer within the cycle.
-3. **Finding the Start of the Cycle**: Once a cycle is detected (when slow meets fast), move one pointer to the head of the list and keep the other at the meeting point. Then move both pointers one step at a time. The point where they meet again is the start of the cycle.
+3. **Finding the Start of the Cycle**: Once a cycle is detected (when slow meets fast), move one pointer to the head of the list and keep the other at the meeting point. Then move both pointers one step at a time. The point where they meet again is the start of the cycle. 
+
+Explanation **Finding the Start of the Cycle**:
+
+Assume:
+
+- The distance from the head of the list to the start of the cycle is $a$ nodes.
+- The distance from the start of the cycle to the point where the slow and fast pointers first meet is $b$ nodes.
+- The length of the cycle is $c$ nodes.
+
+When the slow and fast pointers first meet within the cycle:
+
+- The slow pointer has traveled $a+b$ steps.
+- The fast pointer has traveled $a+b+k⋅c$ steps (where $k$ is the number of times the hare has looped around the cycle).
+
+Since the fast pointer travels twice as fast as the slow pointer, we have: $2(a+b)=a+b+k⋅c$ => $a+b=k⋅c$.
 
 ```python
 # class ListNode:
