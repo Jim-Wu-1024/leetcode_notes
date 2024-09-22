@@ -525,3 +525,78 @@ class Solution:
 
         return None
 ```
+
+# Hash Table
+
+## Valid Anagram
+
+Given two string `s` and `t` return `true` if `t` is an anagram of `s`, and `false` otherwise.
+
+**Solution**:
+```python
+lass Solution:
+    def isAnagram(self, s: str, t: str) -> bool:
+        if len(s) != len(t):
+            return False
+
+        s_dict = {}
+        t_dict = {}
+
+        for char in s:
+            s_dict[char] = s_dict.get(char, 0) + 1
+        
+        for char in t:
+            t_dict[char] = t_dict.get(char, 0) + 1
+
+        return s_dict == t_dict
+
+```
+```python
+## If char exists in the dictionary, get(char) returns the current count of that character.
+## If char does not exist in the dictionary, get(char, 0) returns 0, which serves as a default value indicating the character hasn't been seen yet.
+s_dict[char] = s_dict.get(char, 0) + 1
+```
+
+**Alternative (Using Python's collections.Counter)**:
+```python
+from collections import Counter
+
+def isAnagram(s: str, t: str) -> bool:
+    return Counter(s) == Counter(t)
+```
+
+## Intersection of Two Arrays
+
+**Solution**: (Hash Table)
+```python
+class Solution:
+    def intersection(self, nums1: List[int], nums2: List[int]) -> List[int]:
+        nums1_dict = {}
+        inter_list = []
+
+        for num in nums1:
+            nums1_dict[num] = 1
+
+        for num in nums2:
+            if nums1_dict.get(num, 0):
+                nums1_dict[num] += 1
+
+        for key in nums1_dict:
+            if nums1_dict[key] > 1:
+                inter_list.append(key)
+
+        return inter_list
+
+```
+
+Using `set`
+```python
+class Solution:
+    def intersection(self, nums1: List[int], nums2: List[int]) -> List[int]:
+        # Convert nums1 and nums2 to sets to remove duplicates and optimize membership check
+        set1 = set(nums1)
+        set2 = set(nums2)
+        
+        # Use set intersection to find common elements
+        return list(set1.intersection(set2))
+```
