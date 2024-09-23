@@ -528,6 +528,8 @@ class Solution:
 
 # Hash Table
 
+A **hash table** is a data structure that stores key-value pairs, allowing fast data retrieval. It uses a **hash function** to convert keys into array indices, where values are stored. Hash tables offer average **O(1)** time complexity for search, insert, and delete operations. To handle collisions (when two keys hash to the same index), common techniques include **chaining** (using linked lists) and **open addressing** (finding another open slot).
+
 ## Valid Anagram
 
 Given two string `s` and `t` return `true` if `t` is an anagram of `s`, and `false` otherwise.
