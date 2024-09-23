@@ -600,3 +600,211 @@ class Solution:
         # Use set intersection to find common elements
         return list(set1.intersection(set2))
 ```
+
+## Happy Number
+
+**Solution**:
+
+```python
+class Solution:
+    def digitsSum(self, n: int) -> int:
+        sum = 0
+        while n > 0:
+            sum += (n % 10) ** 2  # Add the square of the last digit
+            n = n // 10  # Remove the last digit
+        return sum
+    
+    # Using Has Table
+    def isHappy(self, n: int) -> bool:
+        sum_dict = {}
+        while n != 1:
+            n = self.digitsSum(n)
+            if n in sum_dict:
+                return False  # Cycle detected
+            sum_dict[n] = 1  # Mark this sum as seen
+        return True
+    
+    # Using Fast-slow pointers
+    def isHappy(self, n: int) -> bool:
+        slow = n
+        fast = self.digitsSum(n)
+        
+        # Continue until fast reaches 1 (happy number) or slow catches up with fast (cycle detected)
+        while fast != 1 and slow != fast:
+            slow = self.digitsSum(slow)          # Move slow one step
+            fast = self.digitsSum(self.digitsSum(fast))  # Move fast two steps
+            
+        # If fast reaches 1, it's a happy number
+        return fast == 1
+```
+
+## Two Sum
+
+**Solution**:
+
+```python
+class Solution:
+    def twoSum(self, nums: List[int], target: int) -> List[int]:
+        num_to_index = {}
+
+        for i, num in enumerate(nums):
+            complement = target - num
+            if complement in num_to_index:
+                return [num_to_index[complement], i]
+
+            num_to_index[num] = i
+        return []
+
+```
+
+## Four Sum Count
+
+**Solution**:
+
+```python
+class Solution:
+    def fourSumCount(self, nums1: List[int], nums2: List[int], nums3: List[int], nums4: List[int]) -> int:
+        sum_12_dict = {}
+        for num1 in nums1:
+            for num2 in nums2:
+                sum_12_dict[num1 + num2] = sum_12_dict.get(num1 + num2, 0) + 1
+
+        count = 0
+        for num3 in nums3:
+            for num4 in nums4:
+                complement = -(num3 + num4)
+                if complement in sum_12_dict:
+                    count += sum_12_dict[complement]
+
+        return count
+
+```
+
+## Ransom Note
+
+**Solution**:
+```python
+class Solution:
+    def canConstruct(self, ransomNote: str, magazine: str) -> bool:
+        magazine_dict = {}
+
+        for char in magazine:
+            magazine_dict[char] = magazine_dict.get(char, 0) + 1
+
+        for char in ransomNote:
+            if char not in magazine_dict or magazine_dict[char] == 0:
+                return False
+            magazine_dict[char] -= 1
+            
+        return True
+
+```
+
+## 3Sum
+
+**Solution**:
+
+Steps:
+1. **Sort the array**: Sorting helps in using two-pointer technique and avoiding duplicates easily.
+2. **Iterate through the array**: For each number, treat it as a target `nums[i]`, and use two pointers (one starting from `i + 1` and another from the end of the array) to find two other numbers that sum up to `-nums[i]`.
+3. **Avoid duplicates**: After finding a valid triplet, skip any duplicate numbers to avoid redundant result.
+
+```python
+class Solution:
+    def threeSum(self, nums: List[int]) -> List[List[int]]:
+        nums.sort()
+        result = []
+        size = len(nums)
+
+        for i in range(size - 2):
+            # Since the array is sorted, once nums[i] > 0,
+            # there is no way to get a sum of zero because all numbers after it will be positive.
+            if nums[i] > 0:
+                return result
+            # We don't want to process the same number multiple times
+            # for the same position `i` to avoid adding duplicate triplets in the result.
+            if i > 0 and nums[i] == nums[i - 1]:
+                continue
+
+            left, right = i + 1, size - 1
+            while left < right:
+                total = nums[i] + nums[left] + nums[right]
+
+                if total == 0:
+                    result.append([nums[i], nums[left], nums[right]])
+
+                    # [-1, 0, 0, 0, 0, 1, 1, 1, 1]
+                    # Move the `left` pointer to the right to avoid duplicates.
+                    # Skip any consecutive duplicates of nums[left].
+                    while left < right and nums[left] == nums[left + 1]:
+                        left += 1
+                    # Move the `right` pointer to the left to avoid duplicates.
+                    # Skip any consecutive duplicates of nums[right].
+                    while left < right and nums[right] == nums[right - 1]:
+                        right -= 1
+
+                    left += 1
+                    right -= 1
+                elif total < 0:
+                    left += 1
+                else:
+                    right -= 1
+
+        return result
+
+```
+
+`if i > 0 and nums[i] == nums[i - 1]` 
+
+In the case of `[-1, -1, 0, 1, 1, 2]`, when `i = 0`, the search area is from `i + 1` to `len(nums) - 1`, which corresponds to the subarray `[-1, 0, 1, 1, 2]`. This search area includes all possible triplet results where `-1` is the first number. When `i = 1` (where `nums[i] = -1` again), the search area becomes `[0, 1, 1, 2]`, which is a subset of the previous search area (because the first `-1` has already been processed). Without the condition `if i > 0 and nums[i] == nums[i - 1]`, this would lead to duplicate triplet results. By skipping duplicate values of `nums[i]`, we avoid redundant calculations and ensure each unique triplet is added to the result only once.
+
+
+## 4Sum
+
+**Solution**:
+```python
+class Solution:
+    def fourSum(self, nums: List[int], target: int) -> List[List[int]]:
+        nums.sort()
+        result = []
+        size = len(nums)
+
+        for k in range(size - 3):
+            if nums[k] > target and target > 0:
+                return result
+            if k > 0 and nums[k] == nums[k - 1]:
+                continue
+            
+            for i in range(k + 1, size - 2):
+                sum_k_i = nums[k] + nums[i]
+                if sum_k_i > target and target > 0:
+                    break
+                if i > k + 1 and nums[i] == nums[i - 1]:
+                    continue
+                
+                left, right = i + 1, size - 1
+                complement = target - sum_k_i
+                while left < right:
+                    sum_left_right = nums[left] + nums[right]
+                    if sum_left_right == complement:
+                        result.append([nums[k], nums[i], nums[left], nums[right]])
+
+                        while left < right and nums[left] == nums[left + 1]:
+                            left += 1
+                        while left < right and nums[right] == nums[right - 1]:
+                            right -= 1
+                        left += 1
+                        right -= 1
+                    elif sum_left_right < complement:
+                        left += 1
+                    else:
+                        right -= 1
+        return result
+```
+
+**Caution**: 
+```python
+if sum_k_i > target and target > 0:
+    break  # break not return
+```
+Case: [-2, 0, 0, 1, 3, 7], target = 4 => `-2 + 7 > 4` if return `[0, 0, 1, 3]` will be ignored.
