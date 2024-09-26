@@ -810,3 +810,36 @@ if sum_k_i > target and target > 0:
     break  # break not return
 ```
 Case: [-2, 0, 0, 1, 3, 7], target = 4 => `-2 + 7 > 4` if return `[0, 0, 1, 3]` will be ignored.
+
+## Remove Duplicated Spaces
+**Input**: " This    is an example   "
+
+**Output**: "This is an example"
+
+**Solution**:
+```python
+class Solution:
+    def removeDuplicatedSpaces(self, s:str) -> str:
+        s = list(s)
+        # 'write' is the position where we write the cleaned-up characters,
+        # 'read' is the position we are currently reading from.
+        write, read = 0, 0
+
+        while read < len(s):
+             # If the current character is not a space
+            if s[read] != ' ':
+                # If write != 0, we are not at the beginning, so we place a space before the next word
+                if write != 0:
+                    s[write] = ' '
+                    write += 1
+                
+                while read < len(s) and s[read] != ' ':
+                    s[write] = s[read]
+                    read += 1
+                    write += 1
+
+            # Move the read pointer to the next character (skip over spaces)
+            read += 1
+        return ''.join(s[:write])
+
+```
