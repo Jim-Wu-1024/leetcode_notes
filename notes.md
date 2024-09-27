@@ -893,3 +893,20 @@ class Solution:
         return i - j if j == m else -1
 
 ```
+
+## Repeated Substring Pattern
+
+Given a string  `s`, check if it can be constructed by taking a substring of it and appending multiple copies of the substring together.
+
+**Solution**: 
+
+1. **Concatenate the string with itself**: When you join s with itself (i.e., `s + s`), all possible shifts of the string appear.
+2. **Remove the first and last characters**: This prevents a false match where the original string overlaps.
+3. **Check if the original string exists in this modified version**: If s is found in the middle, it means s can be made by repeating a substring.
+   
+```python
+class Solution:
+    def repeatedSubstringPattern(self, s:str) -> bool:
+        ss = (s + s)[1:-1]
+        return s in ss  # KMP
+```
