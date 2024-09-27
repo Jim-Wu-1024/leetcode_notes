@@ -811,6 +811,8 @@ if sum_k_i > target and target > 0:
 ```
 Case: [-2, 0, 0, 1, 3, 7], target = 4 => `-2 + 7 > 4` if return `[0, 0, 1, 3]` will be ignored.
 
+# String
+
 ## Remove Duplicated Spaces
 **Input**: " This    is an example   "
 
@@ -841,5 +843,53 @@ class Solution:
             # Move the read pointer to the next character (skip over spaces)
             read += 1
         return ''.join(s[:write])
+
+```
+
+### KMP
+A highly efficient method used to search for a pattern within a text **without backtracking the text pointer**, completing the task in linear time `O(n + m)`, where `n` is the length of the text and `m` is the length of the pattern. 
+
+Pattern|A|B|A|B|A|A|
+|-|-|-|-|-|-|-|
+Index|0|1|2|3|4|5
+Next |0|0|1|2|3|1
+
+```python
+class Solution:
+    def getNext(self, pattern:str) -> list:
+        m = len(pattern)
+        next = [0] * m
+        # k represents the length of the current common longest prefix and suffix 
+        # and also serves as a the end of prefix
+        k = 0
+
+        for i in range(1, m):  # i represents the end of suffix
+            # Adjust k to the longest prefix length that also suffixes up to pattern[i-1]
+            while k > 0 and pattern[k] != pattern[i]:
+                k = next[k-1]
+
+            if pattern[k] == pattern[i]:
+                k += 1
+
+            next[i] = k
+        return next
+
+    def kmp(self, text:str, pattern:str) -> int:
+        next = self.getNext(pattern)
+        n = len(text)
+        m = len(pattern)
+
+        i, j = 0, 0
+        while i < n and j < m:
+            if text[i] == pattern[j]:
+                i += 1
+                j += 1
+            elif j == 0:
+                # If there's no match and j is 0, move to the next character in the text
+                i += 1
+            else:
+                j = next[j-1]
+
+        return i - j if j == m else -1
 
 ```
