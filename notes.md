@@ -910,3 +910,120 @@ class Solution:
         ss = (s + s)[1:-1]
         return s in ss  # KMP
 ```
+
+# Stack and Queue
+
+In Python, **Stack** and **Queue** are two common data structures that are used for managing elements with specific order properties.
+
+## Stack
+
+**Last In, First Out (LIFO)**: The last element added to the stack is the first one to be removed.
+
+Operations:
+
+- **Push**: Add an element to the top of the stack.
+- **Pop**: Remove the element form the top of the stack.
+
+Implementation: **List**
+
+```python
+stack = []
+
+# Push elements onto the stack
+stack.append(1)
+stack.append(2)
+stack.append(3)
+
+# Pop elements from the stack
+top_elements = stack.pop()  # Removes and returns 3 (last in, first out)
+```
+
+## Queue
+
+**First In, First Out (FIFO)**: The first element added to the queue is the first one to be removed.
+
+Operations:
+
+- **Enqueue**: Add an element to the end of the queue.
+- **Dequeue**: Remove an element from the front of the queue.
+
+Implementation: 
+
+```python
+from collections import deque
+
+queue = deque()
+
+# Enqueue elements into the queue
+queue.append(1)
+queue.append(2)
+queue.append(3)
+
+# Dequeue elements from the queue
+front_element = queue.popleft()  # Removes and returns 1 (first in, first out)
+```
+
+## Implement Queue using Stack
+
+**Solution**:
+```python
+class MyQueue:
+    def __init__(self):
+        self.stack_in = []
+        self.stack_out = []
+
+    def push(self, x:int) -> None:
+        self.stack_in.append(x)
+
+    def pop(self) -> int:
+        if self.empty():
+            return None
+
+        if self.stack_out:
+            return self.stack_out.pop()
+        else:
+            while self.stack_in:
+                self.stack_out.append(self.stack_in.pop())
+            return self.stack_out.pop()
+
+    def peek(self) -> int:
+        element = self.pop()
+        self.stack_out.append(element)
+        return element
+    
+    def empty(self) -> bool:
+        return not (self.stack_in or self.stack_out)
+```
+
+## Implement Stack using Queues
+
+**Solution**: Only using one queue
+
+```python
+from collections import deque
+
+class MyStack:
+    def __init__(self):
+        self.que = deque()
+
+    def push(self, x:int) -> None:
+        self.que.append(s)
+
+    def pop(self) -> int:
+        if self.empty():
+            return None
+
+        for i in range(len(self.que) - 1):
+            self.que.append(self.que.popleft())
+
+        return self.que.popleft()
+
+    def top(self) -> int:
+        if self.empty():
+            return None
+
+        return self.que[-1]
+
+    def empty(self) -> bool:
+        return not self.que
+```
