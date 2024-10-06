@@ -1027,3 +1027,135 @@ class MyStack:
     def empty(self) -> bool:
         return not self.que
 ```
+
+## Valid Parentheses
+
+**Solution**:
+1. case 1: ['(', '[', '{', '}', ']', '(', ')']  unmatched opening bracket
+2. case 2: ['[', '{', '(', '}']  incorrect bracket type and order
+3. case 3: ['(', ')', ')']  extra closing bracket
+
+```python
+class Solution:
+    def isValid(self, s:str) -> bool:
+        stack = []
+        mapping = {
+            '(': ')',
+            '[': ']',
+            '{': '}'
+        }
+
+        for item in s:
+            if item in mapping.keys():
+                stack.append(mapping[item])
+            elif not stack or stack[-1] != item:
+                return False
+            else:
+                stack.pop()
+        return True if not stack else False
+```
+
+## Remove All Adjacent Duplicates In String
+
+**Solution**:
+
+```python
+class Solution:
+    def removeDuplicates(self, s: str) -> str:
+        stack = []
+
+        for char in s:
+            if not stack:
+                stack.append(char)
+                continue
+
+            if stack[-1] == char:
+                stack.pop()
+            else:
+                stack.append(char)
+
+        return ''.join(stack)
+        
+```
+
+## Evaluate Reverse Polish Notation
+
+**Solution**:
+
+```python
+class Solution:
+    def evalRPN(self, tokens: List[str]) -> int:
+        stack = []
+        
+        for token in tokens:
+            if token.lstrip('-').isdigit():
+                stack.append(int(token))
+            else:
+                a = stack.pop()
+                b = stack.pop()
+
+                if token == '+':
+                    stack.append(b + a)
+                
+                if token == '-':
+                    stack.append(b - a)
+
+                if token == '*':
+                    stack.append(b * a)
+
+                if token == '/':
+                    stack.append(int(b / a))
+        return stack[-1]
+
+```
+p.s. 
+
+1. Use `token.lstrip('-').isdigit()` to check if a token represents a valid integer, including negative numbers.
+2. In subtraction and division, the operands must be used in the correct order:
+   - For subtraction: `b - a` (i.e., subtract `a` from `b`).
+   - For division: `b / a` (i.e., divide `b` by `a`).
+
+
+## Reverse Polish Notation
+
+**Input**: "3 + ( -2 ) * 5"
+**Output**: "3 -2 5 * +"
+
+```python
+class Solution:
+    def RPN(self, expression:str) -> str:
+        # Define operators' precedence, large number meaning high priority
+        precedence = {
+            '+': 1,
+            '-': 1,
+            '*': 2, 
+            '/': 2
+        }
+        
+        output = []
+        operators = [] # A stack to store operands
+
+        tokens = expression.spilt()
+
+        for token in tokens:
+            if token.lstrip('-').isdigit():
+                output.append(token)
+                continue
+
+            if token in precedence:
+                while operators and operators[-1] != '(' and precedence[operators[-1]] >= precedence[token]:
+                    output.append(operators.pop())
+                operators.append(token)
+            elif token == '(':
+                operators.append(token)
+            elif token == ')':
+                while operators and operators[-1] != '(':
+                    output.append(operators.pop())
+                operators.pop()
+
+        while operators:
+            output.append(operators.pop())
+
+        return ' '.join(output)
+        
+```
