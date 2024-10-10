@@ -1239,6 +1239,8 @@ class Solution:
 The heap implemented by `heapq` is a min-heap by default, 
 meaning the smallest element is always at the top of the heap.
 
+p.s. index of root: k; index of left child: 2k + 1; index of right child: 2k + 2
+
 **Common `heapq` Functions**:
 1. `heapq.heappush(heap, item)`:
    - Push `item` onto the heap while maintaining the heap invariant (the smallest element stays at the top).
