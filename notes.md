@@ -1159,3 +1159,113 @@ class Solution:
         return ' '.join(output)
         
 ```
+## Sliding Window maximum
+
+**Solution**:
+
+Input: nums = [1,3,-1,-3,5,3,6,7], k = 3
+
+Output: [3,3,5,5,6,7]
+
+Explanation: 
+
+Window position  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;             Max
+
+---------------  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;           -----
+
+[1  3  -1] -3  5  3  6  7  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;      3
+
+ 1 [3  -1  -3] 5  3  6  7  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;      3
+
+ 1  3 [-1  -3  5] 3  6  7  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;      5
+
+ 1  3  -1 [-3  5  3] 6  7  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;      5
+
+ 1  3  -1  -3 [5  3  6] 7  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;      6
+
+ 1  3  -1  -3  5 [3  6  7]  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;     7
+
+Step:
+- Loop through the array.
+  1. Remove elements that are out of the bounds of the current window from the front of the queue
+  2. Remove elements from the back of the queue that are smaller than the current element because they are no longer useful
+  3. Add the current element's index to the queue
+  4. Once the window has reached size `k`, the maximum element (at the front of the queue) is added to the result list
+
+```python
+from collections import deque
+
+class Solution:
+    def maxSlidingWindow(self, nums:List[int], k:int) -> List[int]:
+        queue = deque()
+        result = []
+
+        for i in range(len(nums)):
+            # Remove elements from the deque that are out of this window's bounds
+            if queue and queue[0] < i - k + 1:
+                queue.popleft()
+
+            # Remove elements that are smaller than the current number from the back of the deque
+            while queue and nums[i] > nums[queue[-1]]:
+                queue.pop()
+
+             # Add current element's index to the deque
+            queue.append(i)
+
+            # Append the max value of the current window to the result once the first window is full
+            if i >= k - 1:
+                result.append(nums[queue[0]])
+        return result
+
+```
+
+## Top K Frequent Elements
+
+**Solution**: Using `Counter`
+
+time complexity: `O(n + klogn)`
+
+```python
+import Counter
+
+class Solution:
+    def topKFrequent(self, nums: List[int], k: int) -> List[int]:
+        count = Counter(nums)
+        return [key for key, _ in count.most_common(k)]
+```
+
+**`heapq` Overview**:
+
+The heap implemented by `heapq` is a min-heap by default, 
+meaning the smallest element is always at the top of the heap.
+
+**Common `heapq` Functions**:
+1. `heapq.heappush(heap, item)`:
+   - Push `item` onto the heap while maintaining the heap invariant (the smallest element stays at the top).
+2. `heapq.heappop(heap)`:
+   - Pop and return the smallest element from the heap. The heap is automatically restructured to maintain the min-heap property.
+
+
+```python
+import heapq
+
+class Solution:
+    def topKFrequent(self, nums: List[int], k: int) -> List[int]:
+        nums_dict = {}
+
+        # Counting Frequencies
+        for num in nums:
+            nums_dict[num] = nums_dict.get(num, 0) + 1
+
+        pri_que = []
+        for key, freq in nums_dict.items():
+            heapq,heappush(pri_que, (freq, key))
+            if len(pri_que) > k:
+                heapq.heappop(pri_que)
+
+        result = [0] * k
+        for i in range(k-1, -1, -1):
+            result[i] = heapq.heappop(pri_que)[1]
+        return result
+
+```
