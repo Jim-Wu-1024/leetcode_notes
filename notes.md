@@ -1271,3 +1271,35 @@ class Solution:
         return result
 
 ```
+
+# Binary Tree
+
+## Preorder, Inoreder, PostOrder Traversal
+
+```python
+class TreeNode:
+    def __init__(self, val, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+class Solution:
+    def preorederTraversal(self, root:Optional[TreeNode]) -> List[int]:
+        if root is None:
+            return []
+
+        return [root.val] + self.preorderTraversal(root.left) + self.preorederTraversal(root.right)
+
+    def inorederTraversal(self, root:Optional[TreeNode]) -> List[int]:
+        if root is None:
+            return []
+
+        return self.preorderTraversal(root.left) + [root.val] + self.preorederTraversal(root.right)
+
+    def postorederTraversal(self, root:Optional[TreeNode]) -> List[int]:
+        if root is None:
+            return []
+
+        return self.preorderTraversal(root.left) + self.preorederTraversal(root.right) + [root.val]
+        
+```
