@@ -1285,23 +1285,76 @@ class TreeNode:
 
 class Solution:
     def preorederTraversal(self, root:Optional[TreeNode]) -> List[int]:
+        # root, left, right
         if root is None:
             return []
 
         return [root.val] + self.preorderTraversal(root.left) + self.preorederTraversal(root.right)
 
     def inorederTraversal(self, root:Optional[TreeNode]) -> List[int]:
+        # left, root, right
         if root is None:
             return []
 
         return self.preorderTraversal(root.left) + [root.val] + self.preorederTraversal(root.right)
 
     def postorederTraversal(self, root:Optional[TreeNode]) -> List[int]:
+        # left, right, root
         if root is None:
             return []
 
         return self.preorderTraversal(root.left) + self.preorederTraversal(root.right) + [root.val]
+
+    def iterativePreorderTraversal(self, root:Optional[TreeNode]) -> List[int]:
+        if not root:
+            return []
+
+        result = []
+        traversal_stack = [root]
+        while traversal_stack:
+            node = traversal_stack.pop()
+            result.append(node.val)
+
+            if node.right:
+                traversal_stack.append(node.right)
+
+            if node.left:
+                traversal_stack.append(node.left)
+        return result
+
+    def iterativeInorderTraversal(self, root:Optional[TreeNode]) -> List[int]:
+        if not root:
+            return []
+
+        result = []
+        traversal_stack = []
+        cur = root
+        while cur or traversal_stack:
+            if cur:
+                traversal_stack.append(cur)
+                cur = cur.left
+            else:
+                cur = traversal_stack.pop()
+                result.append(cur.val)
+                cur = cur.right
+        return result
         
+    def iterativePostorderTraversal(self, root:Optional[TreeNode]) -> List[int]:
+        if not root:
+            return []
+
+        result = []
+        traversal_stack = [root]
+        while traversal_stack:
+            node = traversal_stack.pop()
+            result.append(node.val)
+
+            if node.left:
+                traversal_stack.append(node.right)
+
+            if node.right:
+                traversal_stack.append(node.left)
+        return result[::-1]  # Flip the final array
 ```
 
 ## Level Order Traversal
