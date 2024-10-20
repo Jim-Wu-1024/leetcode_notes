@@ -69,6 +69,7 @@ class solution:
                 nums[slow] = nums[fast]
                 slow += 1
             fast += 1
+        return slow
 
 ```
 
