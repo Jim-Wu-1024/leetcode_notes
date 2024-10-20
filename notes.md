@@ -1303,3 +1303,102 @@ class Solution:
         return self.preorderTraversal(root.left) + self.preorederTraversal(root.right) + [root.val]
         
 ```
+
+## Level Order Traversal
+
+```python
+class Solution:
+    def levelOrder(self, root: Optional[TreeNode]) -> List[List[int]]:
+        if not root:
+            return []
+
+        result = []
+        traversal_queue = deque()
+        traversal_queue.append(root)
+
+        while traversal_queue:
+            level = []
+            size = len(traversal_queue)
+            for _ in range(size):
+                node = traversal_queue.popleft()
+
+                level.append(node.val)
+
+                if node.left:
+                    traversal_queue.append(node.left)
+                if node.right:
+                    traversal_queue.append(node.right)
+            result.append(level)
+        return result
+
+```
+
+## Maximum/Minimum Depth of Binary Tree
+
+**Solution**:
+
+Recursive Method
+
+```python
+# Definition for a binary tree node.
+# class TreeNode:
+#     def __init__(self, val=0, left=None, right=None):
+#         self.val = val
+#         self.left = left
+#         self.right = right
+class Solution:
+    def maxDepth(self, root: Optional[TreeNode]) -> int:
+        if not root:
+            return 0
+
+        if not (root.left or root.right):
+            return 1
+        
+        # Replace max() with min() to find the minimum depth
+        return max(1 + self.maxDepth(root.left), 1 + self.maxDepth(root.right))
+
+```
+
+Iterative Method: Using Queue
+
+```python
+class Solution:
+    def maxDepth(self, root: Optional[TreeNode]) -> int:
+       if not root:
+        return 0
+
+       depth = 0
+       traversal_queue = deque([root])
+       while traversal_queue:
+        depth += 1
+        size = len(traversal_queue)
+        for _ in range(size):
+            node = traversal_queue.popleft()
+            if node.left:
+                traversal_queue.append(node.left)
+            if node.right:
+                traversal_queue.append(node.right)
+       return depth
+
+
+class Solution:
+    def minDepth(self, root: Optional[TreeNode]) -> int:
+        if not root:
+            return 0
+
+        depth = 0
+        traversal_queue = deque([root])
+        while traversal_queue:
+         depth += 1
+         size = len(traversal_queue)
+         for _ in range(size):
+            node = traversal_queue.popleft()
+            if not (node.left or node.right):
+                return depth
+
+            if node.left:
+                traversal_queue.append(node.left)
+            if node.right:
+                traversal_queue.append(node.right)
+        return depth
+```
