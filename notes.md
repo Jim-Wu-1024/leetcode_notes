@@ -1456,3 +1456,203 @@ class Solution:
                 traversal_queue.append(node.right)
         return depth
 ```
+
+## Invert Binary Tree
+
+```python
+class Solution:
+    def invertTree(self, root: Optional[TreeNode]) -> Optional[TreeNode]:
+        if not root:
+            return None
+
+        if not (root.left or root.right):
+            return root
+
+        root.left, root.right = self.invertTree(root.right), self.invertTree(root.left)
+        return root
+```
+
+## Symmetric Tree
+
+```python
+class Solution:
+    def compareNode(self, left: Optional[TreeNode], right: Optional[TreeNode]) -> bool:
+        # Case 1: One of the nodes is None and the other is not, they are not symmetric
+        if not left and right:
+            return False
+        
+        if left and not right:
+            return False
+
+        # Case 2: Both nodes are None, they are symmetric
+        if not left and not right:
+            return True
+
+        # Case 3: The values of the current nodes are different, they are not symmetric
+        if left.val != right.val:
+            return False
+
+        # Recursively check the "outside" pair (left's left with right's right)
+        outside = self.compareNode(left.left, right.right)
+
+        # Recursively check the "inside" pair (left's right with right's left)
+        inside = self.compareNode(left.right, right.left)
+
+        # The nodes are symmetric only if both outside and inside comparisons are true
+        return outside and inside
+
+    def isSymmetric(self, root: Optional[TreeNode]) -> bool:
+        # An empty tree is symmetric
+        if not root:
+            return True
+        
+        return self.compareNode(root.left, root.right)
+```
+
+## Count Complete Tree Node
+
+**Solution**:
+
+### Complexity Analysis
+
+**Time Complexity:**
+- The left and right depth calculations each run in $( O(d) )$, where $( d )$ is the tree depth $(( O(log n) ))$.
+- For a complete binary tree, the method returns directly in $( O(log n) )$.
+- If the tree is not complete, the method recurses on both subtrees, leading to a time complexity of $(O((log n)^2))$ due to repeated depth calculations.
+
+**Space Complexity:**
+- $( O(log n) )$ due to recursion depth, which corresponds to the height of the tree.
+
+```python
+class Solution:
+    def countNodes(self, root: Optional[TreeNode]) -> int:
+        if not root:
+            return 0
+
+        left_depth, right_depth = 0, 0
+        left, right = root.left, root.right
+
+        while left:
+            left = left.left
+            left_depth += 1
+        while right:
+            right = right.right
+            right_depth += 1
+
+        if left_depth == right_depth:
+            return 2 ** (left_depth + 1) - 1
+
+        return self.countNodes(root.left) + self.countNode(root.right) + 1
+
+```
+
+## Balanced Binary Tree
+
+### Ideas to Solve the Problem
+
+To efficiently determine if a binary tree is balanced, we can use a single recursive function that combines depth calculation and balance checking. 
+This function will traverse the tree once, checking if each subtree is balanced while calculating its depth. By returning both the balance status and the depth in one traversal, 
+we avoid the need for repeated depth calculations, leading to a more efficient solution.
+
+```python
+class Solution:
+    def check_balance_and_depth(self, root: Optional[TreeNode]) -> (bool, int):
+        if not root:
+            return True, 0
+
+        left_balanced, left_depth = self.check_balance_and_depth(root.left)
+        right_balanced, right_depth = self.check_balance_and_depth(root.right)
+
+        balanced = left_balanced and right_balanced and abs(left_depth - right_depth) <= 1
+        return balanced, max(left_depth, right_depth) + 1
+
+
+
+    def isBalanced(self, root: Optional[TreeNode]) -> bool:
+        return self.check_balance_and_depth(root)[0]
+```
+
+## Binary Tree Paths
+
+**Solution**:
+
+1. **Recursive Traversal:** 
+   Use a recursive function to traverse the binary tree, starting from the root. At each node, keep track of the current path by adding the node's value to a list.
+
+2. **Path Construction:** 
+   When a leaf node (a node with no left or right children) is reached, convert the accumulated path into a string using `"->"` as the separator and store it in the result list.
+
+3. **Backtracking:** 
+   After exploring a path through a node, backtrack by removing the last added node from the path. This ensures that the path list is correctly restored, allowing other recursive calls to explore alternative paths.
+
+```python
+class Solution:
+    def binaryTreePaths(self, root: Optional[TreeNode]) -> List[str]:
+        def traversal(root: Optional[TreeNode], path: List[int], result: List[str]):
+            path.append(root.val)
+
+            if not (root.left or root.right):
+                return result.append("->".join(map(str, path)))
+
+            if root.left:
+                traversal(root.left, path, result)
+                # Backtracking: remove the last node to explore other paths
+                path.pop()
+            if root.right:
+                traversal(root.right, path, result)
+                # Backtracking: remove the last node to explore other paths
+                path.pop()
+        
+        
+        path = []
+        result = []
+        traversal(root, path, result)
+        return result
+
+```
+## Sum of Left Leaves
+
+```python
+class Solution:
+    def sumOfLeftLeaves(self, root: Optional[TreeNode]) -> int:
+        if not root:
+            return 0
+
+        left_sum = 0
+
+         # Check if the left node exists and is a leaf
+        if root.left and not (root.left.left or root.left.right):
+            left_sum += root.left.val
+            
+         # Recursively sum left leaves in both left and right subtrees
+        return left_sum + self.sumOfLeftLeaves(root.left) + self.sumOfLeftLeaves(root.right)
+
+```
+
+## Find Bottom Left Tree Value
+
+```python
+class Solution:
+    def findBottomLeftTreeValue(self, root: Optional[TreeNode]) -> int:
+        if not root:
+            return None
+
+        traversal_queue = deque([root])
+        left_bottom_value = root.val
+
+        while traversal_queue:
+            size = len(traversal_queue)
+            for i in range(size):
+                node = traversal_queue.popleft()
+                
+                # Record the first node of each level
+                if i == 0:
+                    left_bottom_value = node.val
+
+                if node.left:
+                    traversal_queue.append(node.left)
+                if node.right:
+                    traversal_queue.append(node.right)
+        return left_bottom_value
+
+```
