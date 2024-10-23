@@ -1656,3 +1656,130 @@ class Solution:
         return left_bottom_value
 
 ```
+
+## Path Sum
+
+**Solution**:
+
+1. **Recursive Traversal:**
+   - Use a helper function (`traversal`) to recursively traverse the tree, keeping track of the current path sum as 
+     it progresses down from the root to the leaves.
+
+2. **Base Case - Leaf Node Check:**
+   - When a leaf node (a node with no left or right children) is reached, check if the accumulated path sum plus 
+     the leaf node's value equals `targetSum`. If it matches, return `True`; otherwise, return `False`.
+
+3. **Recursive Checks for Left and Right Subtrees:**
+   - Recursively call the `traversal` function on the left and right subtrees, updating the current path sum with 
+     the value of the current node.
+   - Use `hasLeft` and `hasRight` to store the results of the recursive checks. If either subtree returns `True`, the function returns `True`, indicating a path exists.
+
+4. **Combine Results Using Logical `or`:**
+   - After checking both left and right subtrees, combine the results using `or`. This ensures that if any valid path 
+     is found, the function will return `True`.
+
+```python
+class Solution:
+    def pathSum(self, root: Optional[TreeNode], targetSum: int) -> bool:
+        def traversal(root: Optional[TreeNode], pathSum: int, targetSum: int) -> bool:
+            if not root:
+                return False
+
+            if not (root.left or root.right):
+                return True if pathSum + root.val == targetSum else False
+
+            checkLeft, checkRight = False, False
+            if root.left:
+                # Recursively check the left subtree with an updated path sum.
+                # `pathSum + root.val` creates a new value, leaving the original `pathSum` unchanged.
+                # This allows implicit backtracking, as each recursive call operates independently.
+                checkLeft = traversal(root.left, pathSum + root.val, targetSum)
+            if root.right:
+                checkRight = traversal(root.right, pathSum + root.val, targetSum)
+            return checkLeft or checkRight
+        return traversal(root, 0, targetSum)
+
+```
+
+## Construct Binary Tree from Inorder and Postorder Traversal
+
+p.s., `list[:0]` return `[]`
+
+**Solution**:
+
+1. **Base Case for Recursion:**
+   - If the `postorder` list is empty, return `None`. This handles the scenario where there are no more nodes to build, effectively terminating that branch of recursion.
+
+2. **Identify the Root Node:**
+   - The last element in the `postorder` list (`postorder[-1]`) is always the **root** of the current subtree. 
+   - Create a new `TreeNode` with this value.
+
+3. **Handle Single Node Tree:**
+   - If the `postorder` list has only one element, return the root node, as there are no left or right subtrees to process.
+
+4. **Divide Inorder List to Find Left and Right Subtrees:**
+   - Locate the `rootValue` in the `inorder` list using `inorder.index(rootValue)`. The index divides the `inorder` list into:
+     - **Left Subtree:** Elements before `rootIndex`.
+     - **Right Subtree:** Elements after `rootIndex`.
+
+5. **Match Left and Right Subtrees in Postorder List:**
+   - Use the length of `left_inorder` to correctly slice the `postorder` list:
+     - **Left Subtree:** `postorder[:len(left_inorder)]` corresponds to the left subtree.
+     - **Right Subtree:** `postorder[len(left_inorder):-1]` captures the right subtree, excluding the last element (root).
+
+6. **Recursive Construction:**
+   - Recursively call `buildTree` to construct the left and right subtrees using the respective `inorder` and `postorder` segments.
+   - Attach the resulting left and right subtrees to the `root` node.
+
+7. **Return the Constructed Tree:**
+   - Once the recursive calls complete, return the `root`, which now has its left and right subtrees correctly attached.
+
+```python
+class Solution:
+    def buildTree(self, inorder: List[int], postorder: List[int]) -> Optional[TreeNode]:
+        if not postorder:
+            return None
+
+        rootValue = postorder[-1]
+        root = TreeNode(rootValue)
+        if len(postorder) == 1:
+            return root
+
+        rootIndex = inorder.index(rootValue)
+
+        leftInorder, rightInorder = inorder[:rootIndex], inorder[rootIndex+1:]
+        leftPostorder, rightPostorder = postorder[:len(leftInorder)], postorder[len(leftInorder):-1]
+
+        root.left = self.buildTree(leftInorder, leftPostorder)
+        root.right = self.buildTree(rightInorder, rightPostorder)
+
+        return root
+
+```
+
+## Maximum Binary Tree
+
+**Solution**:
+
+```python
+class Solution:
+    def constructMaximumBinaryTree(self, nums: List[int]) -> Optional[TreeNode]:
+        if not nums:
+            return None
+
+        rootValue = max(nums)
+        root = TreeNode(rootValue)
+
+        if len(nums) == 1:
+            return root
+
+        rootIndex = nums.index(rootValue)
+
+        leftNums = nums[:rootIndex]
+        rightNums = nums[rootIndex+1:]
+
+        root.left = self.constructMaximumBinaryTree(leftNums)
+        root.right = self.constructMaximumBinaryTree(rightNums)
+        return root
+        
+```
