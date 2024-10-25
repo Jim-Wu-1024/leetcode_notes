@@ -1783,3 +1783,225 @@ class Solution:
         return root
         
 ```
+
+## Merge Two Binary Tree
+
+**Key Concepts**
+
+1. **Recursive Approach**:
+    - The solution uses recursion to traverse both trees simultaneously. At each recursive step, the function merges the current nodes of `root1` and `root2` by adding their values.
+    - The recursion continues for the left and right children of the nodes, effectively traversing both trees in a synchronized manner.
+
+2. **Base Cases**:
+    - **`root1` is `None`**: If `root1` is `None`, it returns `root2`. This means that when there is no node in `root1`, the corresponding node in `root2` will be used in the merged tree.
+    - **`root2` is `None`**: If `root2` is `None`, it returns `root1`. This means that when there is no node in `root2`, the corresponding node in `root1` will be used in the merged tree.
+
+3. **Merging Nodes**:
+    - When both `root1` and `root2` are not `None`, their values are added together (`root1.val += root2.val`), and this value is assigned to the merged node.
+    - The function recursively merges the left children (`root1.left` and `root2.left`) and assigns the result to `root1.left`.
+    - Similarly, it recursively merges the right children (`root1.right` and `root2.right`) and assigns the result to `root1.right`.
+
+4. **Return the Merged Tree**:
+    - The merged tree is constructed by modifying `root1` in place. After the recursive process completes, `root1` contains the merged result and is returned.
+
+**Complexity Analysis**
+
+- **Time Complexity**: `O(n)`, where `n` is the minimum number of nodes between `root1` and `root2`. Each node is visited once during the recursion.
+- **Space Complexity**: `O(h)`, where `h` is the height of the smaller tree, due to the recursive call stack.
+
+```python
+class Solution:
+    def mergeTrees(self, root1: Optional[TreeNode], root2: Optional[TreeNode]):
+        if not root1:
+            return root2
+        if not root2:
+            return root1
+
+        root1.val += root2.val
+
+        root1.left = self.mergeTrees(root1.left, root2.left)
+        root2.right = self.mergeTrees(root1.right, root2.right)
+        return root1
+```
+
+## Search in Binary Search Tree
+
+**Key Concepts**
+
+1. **Binary Search Tree (BST) Property**:
+    - In a BST, the left child of a node always has a smaller value than the node, and the right child has a larger value.
+    - This property allows efficient searching by skipping half of the nodes at each step, similar to binary search on a sorted array.
+
+2. **Recursive Approach**:
+    - The function employs recursion to traverse the tree and locate the target value.
+    - At each node, the function checks if the current node's value matches `val`:
+        - If **equal**, the node is returned.
+        - If **less than `val`**, the search continues in the right subtree.
+        - If **greater than `val`**, the search continues in the left subtree.
+
+3. **Base Case**:
+    - If the `root` is `None`, it means the search has reached a leaf node without finding the target value, so the function returns `None`.
+
+**Complexity Analysis**
+
+- **Time Complexity**: `O(h)`, where `h` is the height of the BST. In the best case (balanced tree), this is `O(log n)`, and in the worst case (unbalanced tree), this can be `O(n)`.
+- **Space Complexity**: `O(h)` due to the recursive call stack. This is `O(log n)` in a balanced tree and `O(n)` in the worst case of an unbalanced tree.
+
+```python
+class Solution:
+    def searchBST(self, root: Optional[TreeNode], val: int) -> Optional[TreeNode]:
+        if not root:
+            return None
+
+        if root.val == val:
+            return root
+        elif root.val < val:
+            return self.searchBST(root.right, val)
+        else:  # root.val > val
+            return self.searchBST(root.left, val)
+        
+```
+
+## Validate Binary Search Tree
+
+**Solution**:
+1. **In-Order Traversal**:
+    - In a valid BST, the in-order traversal should produce values in strictly ascending order.
+    - By maintaining the previous node (`pre`) visited during the traversal, we can check if the current node’s value is greater than the last visited node's value, which ensures the BST property.
+
+2. **Using a Mutable Object for `pre`**:
+    - The function uses a list (`pre = [None]`) to keep track of the previously visited node across recursive calls.
+    - Lists in Python are mutable, so changes to `pre[0]` inside the recursive function persist across all recursive levels.
+    - This solves the issue of maintaining a consistent reference to the previous node during traversal, ensuring that comparisons are accurate.
+
+Complexity Analysis
+
+- **Time Complexity**: `O(n)`, where `n` is the number of nodes in the tree. Each node is visited exactly once during the in-order traversal.
+- **Space Complexity**: `O(h)`, where `h` is the height of the tree, due to the recursive call stack. For a balanced tree, this is `O(log n)`, and for a completely unbalanced tree, it can be `O(n)`.
+
+
+```python
+class Solution:
+    def isValidBST(self, root: Optional[TreeNode]) -> bool:
+        def isValid(root: Optional[TreeNode], pre: List[Optional[TreeNode]]) -> bool:
+            if not root:
+                return True
+            
+            isLeftValid = isValid(root.left, pre)
+
+            if pre[0] and pre[0].val >= root.val:
+                return False
+            pre[0] = root
+
+            isRightValid = isValid(root.right, pre)
+
+            return isLeftValid and isRightValid
+
+        pre = [None]
+        return isValid(root, pre)
+
+```
+
+## Minimum Absolute Difference in BST
+
+**Solution**:
+1. **In-Order Traversal**:
+   - Visits nodes in **sorted order** for a BST.
+   - Efficiently finds the minimum difference by comparing **consecutive nodes**.
+
+2. **State Tracking**:
+   - Use `pre` (previous node) and `minDiff` (minimum difference) as **mutable lists** to maintain state across recursive calls.
+
+3. **Recursive Logic**:
+   - Traverse **left subtree**, process **current node**, then traverse **right subtree**.
+   - Update `minDiff` using `min(minDiff[0], abs(root.val - pre[0].val))` if `pre[0]` exists.
+   - Set `pre[0] = root` to track the current node for the next comparison.
+
+```python
+class Solution:
+    def getMinimumDifference(self, root: Optional[TreeNode]) -> int:
+        def traversal(root: Optional[TreeNode], pre: List[Optional[TreeNode]], minimumDifference: List[int]):
+            if not root:
+                return
+            
+            traversal(root.left, pre, minimumDifference)
+
+            if pre[0] and minimumDifference[0] and abs(root.val - pre[0].val) < minimumDifference[0]:
+                minimumDifference[0] = abs(root.val - pre[0].val)
+            if pre[0] and not minimumDifference[0]:
+                minimumDifference[0] = abs(root.val - pre[0].val)
+            pre[0] = root
+            
+            traversal(root.right, pre, minimumDifference)
+        
+        pre = [None]
+        minimumDifference = [None]
+        traversal(root, pre, minimumDifference)
+        return minimumDifference[0]
+
+```
+
+## Find Mode in Binary Search Tree
+
+**Solution**:
+
+1. **In-Order Traversal**:
+   - **Purpose**: Visits nodes in **sorted order** for a Binary Search Tree (BST).
+   - **Benefit**: Consecutive identical values are processed together, making it easy to count duplicates and identify the mode(s).
+
+2. **Tracking State Across Traversal**:
+   - **`self.pre`**: Stores the **previously visited node**. Used to compare the current node value and update the count if they match.
+   - **`self.count`**: Tracks the **current frequency** of the node value being processed.
+   - **`self.maxCount`**: Maintains the **highest frequency** encountered, which is needed to identify the mode(s).
+   - **`self.result`**: Holds the list of values that occur **most frequently** (the mode(s)).
+
+3. **Counting Logic**:
+   - **If `root.val == self.pre.val`**: Increment `self.count` since the current node matches the previous one.
+   - **If `root.val != self.pre.val`**: Reset `self.count` to `1` as a new value is being processed.
+   - **If `self.pre` is `None`**: Initialize `self.count` for the first node.
+
+4. **Updating Modes**:
+   - **When `self.count == self.maxCount`**: Append the current value to `self.result`, as it matches the highest frequency found.
+   - **When `self.count > self.maxCount`**: Clear `self.result`, update `self.maxCount`, and add the current value, as a new mode with a higher frequency is found.
+
+5. **Complexity**:
+   - **Time Complexity**: \(O(n)\), where \(n\) is the total number of nodes. Each node is visited once during the traversal.
+   - **Space Complexity**: \(O(h)\), where \(h\) is the height of the tree, accounting for the recursion stack depth.
+
+```python
+class Solution:
+    def __init__(self):
+        self.pre = None
+        self.count = 0
+        self.maxCount = 0
+        self.result = []
+
+    def findMode(root: Optional[TreeNode]):
+        def traversal(cur: Optional[TreeNode]):
+            if not cur:
+                return
+
+            # In-order traversal: left subtree
+            traversal(cur.left)
+
+            # Current node processing logic
+            if self.pre and self.pre.val == cur.val:
+                self.count += 1
+            else:  # self.pre is None / self.pre.val != cur.val
+                self.count = 1
+            self.pre = cur
+
+            if self.count == self.maxCount:
+                self.result.append(cur.val)
+            elif self.count > self.maxCount:
+                self.result.clear()
+                self.maxCount = self.count
+                self.result.append(cur.val)
+
+            # In-order traversal: right subtree
+            traversal(cur.right)
+        
+        traversal(root)
+        return self.result
+        
+```
