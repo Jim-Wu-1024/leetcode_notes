@@ -2005,3 +2005,265 @@ class Solution:
         return self.result
         
 ```
+
+## Lowest Common Ancestor
+
+**Solution**:
+
+1. **Recursive Approach**:
+    - The solution uses recursion to traverse the binary tree. At each node, it checks if it can find the nodes `p` and `q` in the left and right subtrees.
+    - The goal is to determine the lowest node in the tree from which both `p` and `q` can be reached, making it the Lowest Common Ancestor (LCA).
+
+2. **Base Case**:
+    - If the current `root` is `None`, it returns `None` because there is no tree to search.
+    - If the current `root` matches either `p` or `q`, it returns `root` because one of the nodes (`p` or `q`) has been found.
+
+3. **Recursive Exploration**:
+    - The function recursively searches the left and right subtrees for `p` and `q`:
+        - `leftChild = self.lowestCommonAncestor(root.left, p, q)`
+        - `rightChild = self.lowestCommonAncestor(root.right, p, q)`
+
+4. **Determine the LCA**:
+    - **Case 1**: If `leftChild` and `rightChild` are both non-null, it means `p` and `q` were found in different subtrees. Therefore, the current `root` is the Lowest Common Ancestor.
+    - **Case 2**: If only `leftChild` is non-null, it means both `p` and `q` are in the left subtree. So, return `leftChild`.
+    - **Case 3**: If only `rightChild` is non-null, it means both `p` and `q` are in the right subtree. So, return `rightChild`.
+    - **Case 4**: If both `leftChild` and `rightChild` are `None`, return `None` because neither `p` nor `q` was found.
+
+5. **Time Complexity**:
+    - The time complexity is **O(N)**, where `N` is the number of nodes in the tree. In the worst case, the algorithm might visit all nodes.
+
+6. **Space Complexity**:
+    - The space complexity is **O(H)**, where `H` is the height of the tree. This is due to the recursion stack. In the worst case (a skewed tree), it can be as large as `O(N)`, but for a balanced tree, it would be `O(log N)`.
+
+```python
+class Solution:
+    def lowestCommonAncestor(self, root: 'TreeNode', p: 'TreeNode', q: 'TreeNode') -> 'TreeNode':
+        if not root or root == p or root == q:
+            return root
+
+        leftChild = self.lowestCommonAncestor(root.left, p, q)
+        rightChild = self.lowestCommonAncestor(root.right, p, q)
+
+        # If both leftChild and rightChild are found, root is the LCA
+        if leftChild and rightChild:
+            return root
+
+        # Otherwise, return the non-null child (either leftChild or rightChild)
+        # if both are None, return None
+        return leftChild if leftChild else rightChild
+
+```
+
+p.s., 
+
+**Forward References in Python Type Annotations**
+
+- **Definition**: A forward reference allows you to use a type in a function or method before the type is actually defined in the code. 
+- **Syntax**: Enclose the type name in quotes (e.g., `'TreeNode'`), signaling to Python that it should resolve the type later.
+- **When to Use**:
+  - If the class or type you're referring to is defined **later** in the code.
+  - Useful in situations involving **circular dependencies** or when the type isn't available at the time of parsing.
+- **Alternative (Python 3.7+)**: 
+  - Use `from __future__ import annotations` at the top of the file to **automatically** treat all type hints as forward references, removing the need for quotes.
+
+
+## Insert Into A Binary Search Tree
+
+**Solution**:
+```python
+class Solution:
+    def insertIntoBST(self, root: Optional[TreeNode], val: int) -> Optional[TreeNode]:
+        # Base case: if root is None, create a new TreeNode with the value
+        if not root:
+            return TreeNode(val)
+        
+        # Recursive insertion based on BST property
+        if val < root.val:
+            root.left = self.insertIntoBST(root.left, val)
+        else:
+            root.right = self.insertIntoBST(root.right, val)
+
+        # Return the root node
+        return root
+
+```
+
+## Delete Node in BST
+
+1. **Recursive Approach**:
+    - The solution uses recursion to locate and delete the specified node (`key`) in the Binary Search Tree (BST).
+    - The search follows the BST property: if the `key` is less than the current node's value, move to the left subtree; if greater, move to the right subtree.
+
+2. **Three Cases When Deleting a Node**:
+    - **Case 1**: The node to delete has **no children** (a leaf node).
+        - Simply remove the node by returning `None`.
+    - **Case 2**: The node to delete has **one child**.
+        - Replace the node with its child by returning `root.left` or `root.right`, whichever is not `None`.
+    - **Case 3**: The node to delete has **two children**.
+        - Replace the node's value with the **in-order successor** (smallest value in the right subtree).
+        - Delete the in-order successor node from the right subtree to maintain the BST structure.
+
+3. **Finding the In-Order Successor**:
+    - Use a helper function (`getMin`) to locate the smallest node in the right subtree.
+    - This node is guaranteed to be greater than all nodes in the left subtree and less than or equal to all nodes in the right subtree.
+
+```python
+class Solution:
+    def getMin(self, root: Optional[TreeNode]) -> Optional[TreeNode]:
+        cur = root.right
+        while cur.left:
+            cur = cur.left
+        return cur
+
+    def deleteNode(self, root: Optional[TreeNode], key: int):
+        if not root:
+            return root
+
+        # If the key is less than the root's value, search in the left subtree
+        if key < root.val:
+            root.left = self.deleteNode(root.left, key)
+        # If the key is greater than the root's value, search in the right subtree
+        elif key > root.val:
+            root.right = self.deleteNode(root.right, key)
+        else:
+            # Node to be deleted found
+            if not (root.left or root.right):
+                return None
+            if not root.left and root.right:
+                return root.right
+            if root.left and not root.right:
+                return root.left
+            
+           # Node with two children: find the in-order successor (smallest in the right subtree)
+            minNode = self.getMin(root.right)
+            # Replace the root's value with the in-order successor's value
+            root.val = minNode.val
+            # Delete the in-order successor
+            root.right = self.deleteNode(root.right, minNode.val)
+        return root
+
+```
+
+## Trim A Binary Search Tree
+
+**Solution**:
+1. **Purpose**:
+    - The goal of the `trimBST` function is to modify a Binary Search Tree (BST) so that all its nodes fall within a specified range `[low, high]`. Any nodes outside this range are removed from the tree.
+
+2. **Recursive Approach**:
+    - The function uses recursion to traverse the tree, trimming nodes that fall outside the specified range.
+    - It follows the Binary Search Tree property, allowing it to efficiently determine which parts of the tree to keep or remove.
+
+3. **Three Main Scenarios**:
+    - **Case 1: Node Value Less Than `low`**:
+        - If `root.val < low`, it means all nodes in the left subtree will also be less than `low` (due to BST properties).
+        - Therefore, the function should **discard the left subtree** and recursively trim the right subtree.
+    - **Case 2: Node Value Greater Than `high`**:
+        - If `root.val > high`, it means all nodes in the right subtree will also be greater than `high`.
+        - The function should **discard the right subtree** and recursively trim the left subtree.
+    - **Case 3: Node Value Within Range**:
+        - If `low <= root.val <= high`, the current node is within the range.
+        - The function will recursively trim both the left and right subtrees, keeping the current node.
+
+4. **Time and Space Complexity**:
+    - **Time Complexity**: \(O(N)\), where `N` is the number of nodes in the tree. In the worst case, every node might need to be visited.
+    - **Space Complexity**: \(O(H)\), where `H` is the height of the tree. This is due to the recursion stack. In the worst case (a skewed tree), it can be (O(N)). For a balanced tree, it will be (O(\log N)).
+
+```python
+class Solution:
+    def trimBST(self, root: Optional[TreeNode], low: int, high: int) -> Optional[TreeNode]:
+        if not root:
+            return root
+
+        if low <= root.val <= high:
+            # If the current node is within the range, recursively trim the left and right subtrees
+            root.left = self.trimBST(root.left, low, high)
+            root.right = self.trimBST(root.right, low, high)
+        if root.val < low:
+            # If the current node's value is less than 'low', trim the left subtree and return the right subtree
+            return self.trimBST(root.right, low, high)
+        if root.val > high:
+            # If the current node's value is greater than 'high', trim the right subtree and return the left subtree
+            return self.trimBST(root.left, low, high)
+        
+        return root
+
+```
+
+## Sorted Array To BST
+
+**Solution**:
+1. **Recursive Approach**:
+    - The solution uses recursion to divide the sorted array into smaller subarrays and create a height-balanced Binary Search Tree (BST).
+    - It selects the middle element of the current subarray as the root to ensure the tree remains balanced.
+
+2. **Base Case**:
+    - The recursion terminates when `start` is greater than `end`, meaning there are no elements left to process. In this case, `None` is returned, creating leaf nodes.
+
+3. **Balanced Tree Construction**:
+    - By choosing the middle element as the root, the function guarantees that the left subtree contains elements smaller than the root, and the right subtree contains elements larger than the root.
+    - Recursively applying this process to the left and right subarrays results in a balanced BST.
+
+4. **Time and Space Complexity**:
+    - **Time Complexity**: \(O(N)\), where `N` is the number of elements in the array. Each element is processed once.
+    - **Space Complexity**: (O(\log N)) on average due to the recursion stack depth, which is proportional to the height of the balanced tree. In the worst case, it can be \(O(N)\) for a skewed tree.
+
+```python
+class Solution:
+    def sortedArrayToBST(self, nums: List[int]) -> Optional[TreeNode]:
+       # Helper function to recursively build the BST
+        def buildBST(start: int, end: int) -> Optional[TreeNode]:
+            if start > end:
+                return None
+            
+            # Choose middle element as the root for balanced BST
+            mid = (start + end) // 2
+            root = TreeNode(nums[mid])
+            
+            # Recursively build left and right subtrees
+            root.left = buildBST(start, mid - 1)
+            root.right = buildBST(mid + 1, end)
+
+            return root
+        
+        return buildBST(0, len(nums) - 1)
+
+```
+
+## Convert BST to Greater Tree
+
+**Solution**:
+1. **Reverse In-Order Traversal**:
+    - The solution uses **reverse in-order traversal** (right-root-left) to process nodes in descending order.
+    - This traversal order allows the function to accumulate a running sum as it moves from the largest to the smallest node.
+
+2. **Cumulative Sum Tracking**:
+    - The `self.sum` attribute keeps a cumulative sum of all node values processed so far.
+    - Each node's value is updated to this cumulative sum, so it reflects the sum of all greater or equal values in the BST.
+
+3. **Base Case**:
+    - The function checks if `root` is `None`. If it is, it returns `None`, allowing the recursion to terminate.
+
+4. **Time and Space Complexity**:
+    - **Time Complexity**: \(O(N)\), where `N` is the number of nodes in the tree, as each node is visited exactly once.
+    - **Space Complexity**: \(O(H)\), where `H` is the height of the tree, due to the recursion stack. In the worst case (a skewed tree), it can be \(O(N)\), but for a balanced tree, it will be (O(log N)).
+
+```python
+class Solution:
+    def __init__(self):
+        self.sum = 0
+
+    def convertBST(self, root: Optional[TreeNode]) -> Optional[TreeNode]:
+        if not root:
+            return None
+
+        root.right = self.convertBST(root.right)
+
+        self.sum += root.val
+        root.val = self.sum
+
+        root.left = self.convertBST(root.left)
+        
+        return root
+
+```  
