@@ -2267,3 +2267,59 @@ class Solution:
         return root
 
 ```  
+
+# Backtracking
+
+1. **Make a Choice**:
+   - Start by choosing an element, position, or path in the solution space. This choice represents a possible step toward building a solution.
+   - **Example**: In generating combinations, pick an element to include in the current combination.
+
+2. **Explore Further with Recursion**:
+   - Recursively explore possibilities after making the initial choice. This step dives deeper into the solution space, building upon the current choice.
+   - **Example**: After adding an element to the current combination, recursively add further elements.
+
+3. **Backtrack (Undo the Choice)**:
+   - If the current path does not lead to a solution or all possibilities under this choice have been explored, undo the choice (backtrack).
+   - This step returns to a previous state, allowing exploration of alternative paths.
+   - **Example**: Remove the last element from the combination to try the next possible element in the sequence.
+
+## Combination
+
+**Solution**:
+```python
+class Solution:
+    def combination(self, n: int, k: int) -> List[List[int]]:
+        def backtracking(start: int, path: List[int]):
+            # Base case: if the combination is of length k, add it to results
+            if len(path) == k:
+                result.append(path[:])  # Use a copy of path to avoid reference issues
+                return
+
+            for i in range(start, n+1):  ## for i in range(start, n-(k-len(path)) + 1 +1)
+                # Include i in the current combination
+                path.append(i)
+            
+                # Recur with the next number
+                backtrack(i + 1, path)
+            
+                # Backtrack: remove the last element to explore a new combination
+                path.pop()
+        result = []
+        backtracking(1, [])
+        return result
+
+```
+
+`for i in range(start, n-(k-len(path)) + 1 +1)` is used to limit the range in the loop, ensuring efficient backtracking by stopping early when there aren’t enough remaining elements to form a valid combination.
+
+1. **`k - len(path)`**:
+   - Represents the **number of additional elements** needed to complete a combination of length `k`.
+
+2. **`n - (k - len(path))`**:
+   - Calculates the **last possible starting position** that leaves enough elements to complete a valid combination.
+   - Ensures that further iterations don't attempt to form incomplete combinations.
+
+3. **`+ 1 + 1` Adjustment**:
+   - Adds `+ 1` to make the end of the range inclusive.
+   - Adds another `+ 1` for Python's `range` behavior, giving `+ 2` in total.
+
