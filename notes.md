@@ -2506,3 +2506,61 @@ class Solution:
         backtracking(0, [], 0)
         return result
 ```
+
+## Palindrome Partitioning
+
+**Solution**:
+
+1. **Backtracking Approach**:
+   - **Backtracking** is used to explore all possible partitions of `s`. Each recursive call tries to extend the current partition with a substring if it’s a palindrome.
+   - The `backtracking` function takes the current starting index and builds partitions incrementally until the end of the string is reached.
+
+2. **Recursive Base Case**:
+   - When `start` reaches the length of `s`, it means a complete partition has been formed. The current partition (stored in `current_partition`) is added as a copy to the `result` list.
+
+3. **Checking for Palindromes**:
+   - A helper function, `isPalindrome`, checks if a substring `s[left:right+1]` is a palindrome by comparing characters from both ends moving toward the center.
+   - This function allows the backtracking process to include only palindromic substrings in each partition, ensuring that all partitions meet the palindrome requirement.
+
+4. **Recursive Exploration and Backtracking**:
+   - For each starting index `start`, the backtracking function iterates over possible ending indices `i` to check each substring `s[start:i+1]`.
+   - If the substring is a palindrome, it is added to the current partition, and a recursive call is made to continue building the partition.
+   - After each recursive call, `current_partition.pop()` removes the last added substring, effectively "backtracking" to explore other potential partitions.
+
+5. **Result Collection**:
+   - `result` collects all valid palindrome partitions as lists of strings. Each partition represents a unique way to divide `s` into palindromic substrings.
+
+6. **Time and Space Complexity**:
+   - **Time Complexity**: Approximately $(O(N \times 2^N))$, where (N) is the length of `s`, due to the recursive generation of all possible partitions and palindrome checks.
+   - **Space Complexity**: (O(N)) for the recursion stack depth and (O(2^N)) for storing all partitions in `result`.
+
+```python
+class Solution:
+    def partition(self, s: str) -> List[List[str]]:
+        # Helper function to check if a substring is a palindrome
+        def isPalindrome(left: int, right: int) -> bool:
+            while left < right:
+                if s[left] != s[right]:
+                    return False
+                left += 1
+                right -= 1
+            return True
+
+        # Backtracking function to build palindrome partitions
+        def backtracking(start: int, path: List[str]):
+            if start == len(s):
+                result.append(path[:])
+                return
+
+            for i in range(start, len(s)):
+                # If substring s[start:i+1] is a palindrome
+                if isPalindrome(start, i):
+                    path.append(s[start:i+1])
+                    backtracking(i+1, path)
+                    path.pop()  # Backtrack to try other partitions
+
+        result = []
+        backtracking(0, [])
+        return result 
+
+```
