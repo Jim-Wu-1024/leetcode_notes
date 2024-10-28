@@ -2323,3 +2323,186 @@ class Solution:
    - Adds `+ 1` to make the end of the range inclusive.
    - Adds another `+ 1` for Python's `range` behavior, giving `+ 2` in total.
 
+## Combination Sum III
+
+1. **Backtracking Approach**:
+   - The solution employs a backtracking function, `backtracking`, which incrementally builds each combination.
+   - `start` specifies the starting point for the next selection, ensuring that numbers are not reused.
+
+2. **Base Cases**:
+   - **Successful Combination**: If the length of `path` is `k` and the sum of `path` is `n`, the combination is valid. We add a copy of `path` to `result`.
+   - **Early Exit**: If the sum of `path` exceeds or equals `n` before reaching `k` elements, the function returns early, avoiding unnecessary computation.
+
+3. **Loop Range Optimization**:
+   - The loop range `for i in range(start, 10 - (k - len(path)) + 1)` limits iterations by accounting for the remaining numbers needed to reach a length of `k`.
+   - This optimization helps prevent redundant recursive calls, improving performance by skipping combinations that cannot reach the desired length.
+
+4. **Backtracking (Undo the Choice)**:
+   - After adding a number `i` to `path`, we make a recursive call with `i + 1` to continue building the combination.
+   - Once the recursive call completes, `path.pop()` removes the last number added, allowing exploration of alternative paths.
+
+5. **Result Collection**:
+   - `result` is a list that accumulates all valid combinations. At the end of the function, `result` contains every unique combination of `k` numbers that add up to `n`.
+
+6. **Time Complexity**:
+   - The time complexity is approximately \(O(2^9)\) because each number can either be included or excluded, but optimizations reduce the number of calls.
+
+7. **Space Complexity**:
+   - The space complexity is \(O(k)\) for the depth of the recursion stack and \(O(C)\) for storing all valid combinations, where \(C\) is the number of valid solutions.
+
+```Python
+class Solution:
+    def combinationSum3(self, k: int, n: int) -> List[List[int]]:
+        def backtracking(start: int, path: List[int]):
+            if len(path) == k and sum(path) == n:
+                result.append(path[:])
+                return
+            if sum(path) >= n:
+                return 
+
+            for i in range(start, 10 - (k - len(path)) + 1):
+                
+                path.append(i)
+
+                backtracking(i+1, path)
+
+                path.pop()
+            
+        result = []
+        backtracking(1, [])
+        return result
+        
+```
+
+## Letter Combinations of a Phone Number 
+
+**Solution**:
+1. **Backtracking Approach**:
+   - **Backtracking** is used to explore all potential letter combinations by incrementally building each combination and backtracking when a path has been fully explored.
+   - The `backtracking` function adds letters one by one to a temporary list (`path`) and moves to the next digit until the length of `path` matches the length of `digits`.
+
+2. **Recursive Base Case**:
+   - When the length of `path` is equal to `len(digits)`, a complete combination has been formed.
+   - This combination is joined into a string and added to `result`, which holds all valid combinations.
+
+3. **Mapping of Digits to Letters**:
+   - A dictionary, `mapping`, defines the relationship between digits and their corresponding letters.
+   - For each digit in `digits`, `mapping[digits[index]]` provides the list of letters for that digit, enabling a straightforward way to retrieve possible letters.
+
+4. **Backtracking with Recursive Calls**:
+   - For each letter mapped to the current digit, the letter is appended to `path`, and a recursive call is made to continue building the combination with the next digit.
+   - After the recursive call returns, `path.pop()` undoes the last addition, preparing `path` for the next possible letter in the current digit’s set, effectively “backtracking.”
+
+5. **Time and Space Complexity**:
+   - **Time Complexity**: \(O(4^n)\), where \(n\) is the length of `digits`. Each digit has up to 4 letters (e.g., digit "7" maps to "pqrs"), resulting in \(4^n\) possible combinations.
+   - **Space Complexity**: \(O(n)\) for the recursion stack depth and \(O(4^n)\) for storing the resulting combinations.
+
+```python
+class Solution:
+    def letterCombinations(self, digits: str) -> List[str]:
+        if not digits:
+            return []
+
+        # Mapping of digits to their respective letters
+        mapping = {
+            "2": ["a", "b", "c"],
+            "3": ["d", "e", "f"],
+            "4": ["g", "h", "i"],
+            "5": ["j", "k", "l"],
+            "6": ["m", "n", "o"],
+            "7": ["p", "q", "r", "s"],
+            "8": ["t", "u", "v"],
+            "9": ["w", "x", "y", "z"]
+        }
+
+        def backtracking(index: int, path: List[str]):
+            # If the current path length equals the input digits' length, add the combination to result
+            if len(path) == len(digits):
+                result.append("".join(path))
+                return
+
+            # Retrieve letters for the current digit
+            letters = mapping[digits[index]]
+            for letter in letters:
+                path.append(letter)
+                backtracking(index + 1, path)
+                path.pop()  # Backtrack to previous state
+
+        # Initialize result list
+        result = []
+        backtracking(0, [])
+        return result
+        
+```
+
+## Combination Sum
+
+1. **Backtracking Approach**:
+   - **Backtracking** is used to explore each possible combination by incrementally building a path (combination) and backtracking when a path cannot reach the target or has met the target.
+   - The `backtracking` function tries adding each candidate starting from the current position, allowing numbers to be reused by passing the same `start` index in each recursive call.
+
+2. **Recursive Base Cases**:
+   - **Combination Found**: When `currentSum` matches the `target`, a valid combination is found. A copy of `path` is added to `result`.
+   - **Exceeds Target**: If `currentSum` exceeds `target`, the function returns early, pruning paths that cannot lead to a valid solution.
+
+3. **Exploration of Candidates**:
+   - For each candidate at index `i`, `backtracking` adds `candidates[i]` to `path`, updates `currentSum`, and recursively calls itself to explore further combinations with the updated `currentSum`.
+   - By calling `backtracking(i, path, currentSum + candidates[i])`, the function allows the same candidate to be reused within a single combination.
+
+4. **Backtracking (Undo the Choice)**:
+   - After each recursive call, `path.pop()` removes the last candidate added, effectively "backtracking" to explore alternative combinations by moving to the next candidate.
+
+5. **Time and Space Complexity**:
+   - **Time Complexity**: This approach has exponential time complexity, approximately \(O(2^t)\), where \(t\) is `target` divided by the smallest candidate, due to the large number of potential combinations.
+   - **Space Complexity**: \(O(t)\) for the maximum depth of the recursion stack (related to `target`) and \(O(C)\) for storing `C` valid combinations in `result`.
+
+```python
+class Solution:
+    def combinationSum(self, candidates: List[int], target: int) -> List[List[int]]:
+        def backtracking(start: int, path: List[int], currentSum: int):
+            if currentSum == target:
+                result.append(path[:])
+                return
+            if currentSum > target:
+                return
+
+            
+            for i in range(start, len(candidates)):
+                path.append(candidates[i])
+
+                backtracking(i, path, currentSum+candidates[i])
+
+                path.pop()
+        result = []
+        backtracking(0, [], 0)
+        return result
+
+```
+
+```python
+class Solution:
+    def combinationSum(self, candidates: List[int], target: int) -> List[List[int]]:
+        def backtracking(start: int, path: List[int], currentSum: int):
+            # If the current sum matches the target, we found a valid combination
+            if currentSum == target:
+                result.append(path[:])
+                return
+            # Prune paths where the sum exceeds the target
+            if currentSum > target:
+                return
+
+            for i in range(start, len(candidates)):
+                # Early exit for any further candidates that would exceed target
+                if currentSum + candidates[i] > target:
+                    break  # Since candidates are sorted, no need to check further
+                
+                path.append(candidates[i])
+                # Recursive call with `i` to allow reuse of the current element
+                backtracking(i, path, currentSum + candidates[i])
+                path.pop()  # Backtrack to try the next candidate
+        
+        result = []
+        candidates.sort()  # Sort candidates to enable pruning
+        backtracking(0, [], 0)
+        return result
+```
