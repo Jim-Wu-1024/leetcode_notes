@@ -2628,3 +2628,52 @@ class Solution:
         return result
 
 ```
+
+## Subsets
+
+**Solution**:
+
+1. **Backtracking Approach**:
+   - The **backtracking** function recursively explores all subsets by building paths step by step.
+   - At each step, it makes a choice to either include or exclude the current element, thereby exploring all possible combinations.
+
+2. **Recursive Structure**:
+   - The `backtracking` function takes in `start`, which is the starting index for the current subset, and `path`, which is the current subset being built.
+   - The function adds a copy of `path` to `result` to capture the subset formed so far.
+
+3. **Base Case**:
+   - The base case is implicitly handled by the loop and backtracking structure: when `start` exceeds the length of `nums`, the recursion simply terminates.
+   - This ensures that all combinations are explored without adding any additional conditions.
+
+4. **Recursive Exploration and Backtracking**:
+   - The loop iterates over elements starting from the current index `start` to the end of `nums`.
+   - For each element `nums[i]`, it’s added to `path`, and a recursive call is made to continue building the subset from the next index.
+   - After the recursive call, `path.pop()` undoes the last addition, effectively "backtracking" to explore the next subset.
+
+5. **Result Collection**:
+   - `result` accumulates all subsets, with each subset represented as a separate list in `result`.
+
+6. **Time and Space Complexity**:
+   - **Time Complexity**: \(O(2^n)\), where \(n\) is the length of `nums`, as there are \(2^n\) possible subsets.
+   - **Space Complexity**: \(O(n)\) for the recursion depth and \(O(2^n)\) for storing all subsets in `result`.
+
+```python
+class Solution:
+    def subsets(self, nums: List[int]) -> List[List[int]]:
+        def backtracking(start: int, path: List[int]):
+            result.append(path[:])
+
+            if start >= len(nums):
+                return
+
+            for i in range(start, len(nums)):
+                path.append(nums[i])
+                backtracking(i+1, path)
+                path.pop()
+
+
+        result = []
+        backtracking(0, [])
+        return result
+
+```
