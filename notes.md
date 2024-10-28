@@ -2564,3 +2564,67 @@ class Solution:
         return result 
 
 ```
+
+## Restore IP Addresses
+
+1. **Backtracking Approach**:
+   - The solution uses **backtracking** to explore all potential ways to divide the string into 4 segments.
+   - For each segment, it checks if the segment is valid before proceeding. If a path of 4 valid segments reaches the end of the string, it forms a valid IP address and is added to the result.
+
+2. **Helper Function `isValid`**:
+   - **Purpose**: `isValid` checks if a substring represents a valid IP segment.
+   - **Conditions**:
+     - The segment contains only digits.
+     - If the segment has multiple digits, it cannot start with "0".
+     - The integer value of the segment must be between 0 and 255.
+
+3. **Recursive Exploration in `backtracking`**:
+   - **Base Case**: If `path` has 4 segments and `start` equals the length of `s`, a valid IP address is formed. It’s added to `result`.
+   - **Early Termination**: If `path` already has 4 segments but `start` hasn’t reached the end of `s`, the function returns early to prevent invalid paths.
+   - **Iterating through Possible Segments**: The loop tries segments of length 1 to 3, since each IP segment can have at most 3 digits.
+
+4. **Optimizations**:
+   - **Limit Segment Length**: The loop limits each segment to a maximum of 3 characters, ensuring efficient exploration.
+   - **Avoid Redundant Slicing**: `isValid` caches the current substring (`segment = s[left:right+1]`), reducing repeated slicing and improving performance.
+
+5. **Time and Space Complexity**:
+   - **Time Complexity**: Approximately \(O(3^4)\), as we try up to 3 characters per segment for a total of 4 segments.
+   - **Space Complexity**: \(O(1)\) for the path and segment limits, but additional space is used for storing all valid IP addresses in `result`.
+
+```python
+class Solution:
+    def restoreIpAddresses(self, s: str) -> List[str]:
+        def isValid(left: int, right: int) -> bool:
+            segment = s[left:right+1]
+            # Check if segment is a digit-only string
+            if not segment.isdigit():
+                return False
+            # Check for leading zero in multi-digit segment
+            if len(segment) > 1 and segment[0] == "0":
+                return False
+            # Check if segment is within the valid IP range
+            if int(segment) > 255:
+                return False
+            return True
+
+        def backtracking(start: int, path: List[str]):
+            # Base case: a valid IP address
+            if len(path) == 4 and start == len(s):
+                result.append(".".join(path))
+                return
+            # Early return if path already has more than 4 segments
+            if len(path) >= 4:
+                return
+
+            # Loop to try segments of length 1 to 3
+            for i in range(start, min(start + 3, len(s))):  # limits each segment to a maximum of 3 digits
+                if isValid(start, i):
+                    path.append(s[start:i+1])  # Add the current segment to path
+                    backtracking(i + 1, path)  # Recur for the next part
+                    path.pop()  # Backtrack to try the next segment
+
+        result = []
+        backtracking(0, [])
+        return result
+
+```
