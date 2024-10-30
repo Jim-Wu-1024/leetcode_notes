@@ -2677,3 +2677,62 @@ class Solution:
         return result
 
 ```
+
+## Combination Sum II
+
+**Solution**:
+
+1. **Backtracking Approach**:
+   - **Backtracking** is used to explore all possible combinations of candidates by incrementally building each combination and pruning invalid paths.
+   - Each recursive call considers whether adding a candidate meets or exceeds `target` and only explores valid paths further.
+
+2. **Handling Duplicate Candidates**:
+   - The solution sorts `candidates` to handle duplicates easily.
+   - By checking `if i > start and candidates[i] == candidates[i - 1]: continue`, the function skips duplicate numbers in the same recursive level to avoid redundant combinations.
+
+3. **Early Pruning with Sorted Candidates**:
+   - Since `candidates` is sorted, `if currentSum + candidates[i] > target: continue` skips elements that would exceed `target`, reducing the search space and improving efficiency.
+   - Sorting also allows early termination of loops when sums become invalid, avoiding unnecessary recursion.
+
+4. **Recursive Base Cases**:
+   - **Valid Combination**: If `currentSum` equals `target`, the current `path` is a valid combination and is added to `result`.
+   - **Exceeds Target**: If `currentSum` exceeds `target`, the function returns early, avoiding further exploration of invalid paths.
+
+5. **Edge Cases**:
+   - **Empty or Insufficient Candidates**: If `candidates` is empty or if the smallest candidate exceeds `target`, the function returns `[]` immediately.
+
+6. **Time and Space Complexity**:
+   - **Time Complexity**: Approximately \(O(2^n)\), where \(n\) is the number of elements in `candidates`, since it explores all subsets with pruning.
+   - **Space Complexity**: \(O(target)\) for recursion depth and \(O(2^n)\) to store all valid combinations in `result`.
+
+```python
+class Solution:
+    def combinationSum2(self, candidates: List[int], target: int) -> List[List[int]]:
+        def backtracking(start: int, path: List[int], currentSum: int):
+            if currentSum == target:
+                result.append(path.copy())
+                return
+            if currentSum > target:
+                return
+            
+            for i in range(start, len(candidates)):
+                # If adding candidates[i] would exceed the target, exit the loop
+                if currentSum + candidates[i] > target:
+                    break
+                # Skip duplicate elements to avoid duplicate combinations
+                if i > start and candidates[i] == candidates[i - 1]:
+                    continue
+                
+                path.append(candidates[i])
+                backtracking(i + 1, path, currentSum + candidates[i])
+                path.pop()  # Backtrack to try the next candidate
+        
+        if not candidates or min(candidates) > target:
+            return []
+        
+        result = []
+        candidates.sort()
+        backtracking(0, [], 0)
+        return result
+        
+```
