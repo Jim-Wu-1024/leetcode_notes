@@ -2736,3 +2736,65 @@ class Solution:
         return result
         
 ```
+
+## Non-decreasing Subsequences
+
+**Solution**:
+
+1. **Backtracking Approach**
+
+   - The solution uses **backtracking** to explore all possible subsequences of the input list `nums`.
+   - Backtracking is well-suited here as it allows the algorithm to build each potential subsequence, explore it, and then backtrack to explore new possibilities.
+   - For each recursive call, the function decides whether to include or exclude each element in the current subsequence.
+
+2. **Maintaining Non-Decreasing Order**
+
+   - The function only builds **non-decreasing subsequences**.
+   - When iterating over elements in `nums`, it checks if the current element `nums[i]` is greater than or equal to the last element of the current sequence (`path`). If it’s not, it skips that element.
+   - This ensures that only valid, non-decreasing subsequences are built.
+
+3. **Using a `used` Dictionary for Duplicate Prevention**
+
+   - At each recursive level, a `used` dictionary tracks elements that have already been added at that level.
+   - If an element has already been used at a particular recursion depth, it is skipped to prevent duplicate subsequences.
+   - `used` is reset for each recursive call so that duplicate checking is isolated to each level of recursion, preventing the same value from being considered twice within the same subsequence.
+
+4. **Collecting Valid Subsequences**
+
+   - A subsequence is added to the `result` list only if it has a length of 2 or more, ensuring that all subsequences meet the problem's requirements.
+   - Each time a valid subsequence is found, a copy of it is appended to `result`.
+   - The algorithm uses `.copy()` to prevent later modifications from affecting the stored subsequence.
+
+5. **Recursive Exploration and Backtracking**
+
+   - The algorithm explores each element starting from the current `start` index up to the end of `nums`.
+   - It adds each valid element to `path`, makes a recursive call to explore further extensions of the subsequence, and then **backtracks** by removing the last element from `path`.
+   - This backtracking step allows the function to explore new subsequences while maintaining previously found subsequences intact.
+   - 
+
+```python
+class Solution:
+    def findSubsequences(self, nums: List[int]) -> List[List[int]]:
+        def backtracing(start: int, path: List[int]):
+            if len(path) >= 2:
+                result.append(path.copy())
+                
+            if start >= len(nums):
+                return
+
+            used = {}  # Reset `used` at each level
+            for i in range(start, len(nums)):
+                if (len(path) > 0 and nums[i] < path[-1]) or nums[i] in used:   ## or !!!
+                    continue
+                
+                path.append(nums[i])
+                used[nums[i]] = 1  # Mark `nums[i]` as used in this level
+                
+                backtracing(i + 1, path)
+                
+                path.pop()  # Backtrack
+
+        result = []
+        backtracing(0, [])
+        return result
+```
