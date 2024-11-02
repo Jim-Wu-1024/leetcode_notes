@@ -2798,3 +2798,318 @@ class Solution:
         backtracing(0, [])
         return result
 ```
+
+## Permutations
+
+**Solution**:
+
+
+1. Backtracking with Path and Used List
+   - **Backtracking** is employed to explore all possible permutations by constructing a path step-by-step.
+   - **Path**: A list that keeps track of the current sequence of numbers.
+   - **Used List**: A boolean list where `used[i]` indicates whether `nums[i]` is currently in the path.
+  
+2. Base Case for Complete Permutation
+   - When `path` length equals `nums` length, we have a complete permutation.
+   - We then add a copy of the `path` to the result list to capture this unique permutation.
+
+3. Skipping Used Elements
+  - **Condition**: `if used[i]: continue`
+  - If `used[i]` is `True`, it means `nums[i]` is already in the current path, so we skip it to avoid repetition in a single permutation.
+
+
+4. Recursive Calls and Backtracking
+   - **Adding**: We add `nums[i]` to `path` and mark `used[i]` as `True`, then recursively call the function to continue building the permutation.
+   - **Backtracking**: After the recursive call, we backtrack by removing the last element from `path` and resetting `used[i]` to `False`, allowing that element to be reused in future branches.
+
+5. Collecting Results
+   - When a complete permutation is found, it is added to the `result` list.
+   - The final `result` contains all unique permutations of `nums`, pruned of any duplicate paths.
+
+6. Time Complexity
+   - The time complexity of this approach is **O(N * N!)**, where `N` is the length of `nums`.
+   - The pruning of duplicate paths helps reduce unnecessary recursive calls, making the algorithm more efficient when duplicates are present.
+
+```python
+class Solution:
+    def permute(self, nums: List[int]) -> List[List[int]]:
+        def backtrack(path: List[int], used: List[bool]):
+            # Base case: if path length is the same as nums, we have a complete permutation
+            if len(path) == len(nums):
+                result.append(path[:])
+                return
+            
+            for i in range(len(nums)):
+                # Skip used elements to avoid reusing the same element in the same permutation
+                if used[i]:
+                    continue
+                
+                # Add current element to path and mark as used
+                path.append(nums[i])
+                used[i] = True
+                
+                # Recurse with updated path and used list
+                backtrack(path, used)
+                
+                # Backtrack: remove current element from path and mark as unused
+                path.pop()
+                used[i] = False
+
+        result = []
+        backtrack([], [False] * len(nums))
+        return result
+        
+```
+
+## Permutations II
+
+**Solution**:
+
+1. Sorting the Input Array
+   - **Purpose**: Sorting `nums` helps in identifying and handling duplicate elements.
+   - By placing duplicates next to each other, we can efficiently skip redundant branches in the backtracking tree.
+
+2. Backtracking with Path and Used List
+   - **Backtracking** is used to explore all possible permutations by incrementally building each path.
+   - **Path**: A list representing the current sequence of numbers in the permutation.
+   - **Used List**: A boolean list where `used[i]` indicates whether `nums[i]` is currently in the path, preventing reuse of the same element in the current sequence.
+
+3. Base Case for a Complete Permutation
+   - When `path` length matches `nums` length, a complete permutation is formed.
+   - This permutation (copy of `path`) is added to `result`, capturing the unique permutation.
+
+4. Skipping Used Elements
+   - **Condition**: `if used[i]: continue`
+   - If `used[i]` is `True`, `nums[i]` is already in the current path, so we skip to avoid repetition.
+
+5. Pruning Duplicate Paths
+   - **Condition**: `if i > 0 and nums[i] == nums[i-1] and not used[i-1]: continue`
+   - **Explanation**:
+       - `nums[i] == nums[i-1]` checks if the current number is a duplicate of the previous one.
+       - `not used[i-1]` ensures we skip `nums[i]` if the previous duplicate (`nums[i-1]`) has not been used in the current path (in the same deep level).
+   - **Purpose**: This prevents generating duplicate permutations by ensuring only the first occurrence of each duplicate in each level of recursion is used in the current branch.
+
+6. Recursive Calls and Backtracking Steps
+   - **Adding**: Add `nums[i]` to `path` and set `used[i]` to `True`, then recursively call `backtracking` to continue building the permutation.
+   - **Backtracking**: After the recursive call, we backtrack by removing the last element from `path` and resetting `used[i]` to `False`, allowing that element to be reused in future paths.
+
+7. Collecting Results
+   - When a complete permutation is formed, it is appended to `result`.
+   - The final `result` contains all unique permutations of `nums`, with duplicate paths pruned out.
+
+8. Time Complexity
+   - The time complexity of this approach is **O(N * N!)**, where `N` is the length of `nums`.
+   - Pruning duplicate paths reduces unnecessary recursive calls, improving efficiency when duplicates are present.
+
+## Reconstruct Itinerary
+
+**Solution**:
+
+1. Building the Graph (Flight Map)
+   - **Data Structure**: A `defaultdict` of lists (`path`) is used to represent the graph, where each key is an airport and the value is a list of destination airports.
+   - **Graph Creation**:
+        - For each `ticket` in `tickets`, add the destination (`ticket[1]`) to the list of the departure airport (`ticket[0]`).
+        - **Sorting**: Each list of destinations is sorted in **reverse lexicographical order** so that we can use `pop()` to efficiently get the smallest lexicographical destination during traversal.
+
+2. Depth-First Search (DFS) Traversal
+   - **Purpose**: To explore all paths and build the itinerary while using each ticket exactly once.
+   - **Recursive Function**:
+       - **`dfs(node)`**:
+       - While there are remaining destinations from the current `node` in `path[node]`, recursively call `dfs` on the last destination using `pop()`.
+       - Append the `node` to `result` after all destinations from that `node` are exhausted (post-order traversal).
+       - **Efficiency**: Using `pop()` ensures each operation is **O(1)**, and sorting in reverse order helps maintain the lexicographical order when traversing.
+
+4. Constructing the Result Itinerary
+   - **Appending in Reverse**: Nodes are appended to `result` only after all their outgoing flights are used, resulting in the itinerary being built in reverse order.
+   - **Reversing `result`**: The final itinerary is obtained by reversing `result` (`result[::-1]`), providing the correct order from start to finish.
+
+```python
+from typing import List
+from collections import defaultdict
+
+class Solution:
+    def findItinerary(self, tickets: List[List[str]]) -> List[str]:
+        def dfs(node: str):
+            while path[node]:
+                dfs(path[node].pop())
+            result.append(node)
+
+        path = defaultdict(list)
+        # Step 1: Build the graph using a defaultdict of lists
+        for ticket in tickets:
+            path[ticket[0]].append(ticket[i])
+        # Step 2: Sort each list of destinations in reverse lexicographical order
+        # This allows us to use pop() to get the next smallest lexicographical destination
+        for node in path.keys():
+            path[node].sort(reverse=True)
+
+        result = []
+        dfs('JFK')
+        return result[::-1]
+
+```
+
+## N-Queens
+
+**Solution**:
+
+1. Approach: Backtracking
+   - The solution uses a backtracking algorithm to explore possible placements of queens row by row.
+   - The `backtracing` function recursively attempts to place queens on the board and backtracks when a placement leads to an invalid configuration.
+
+2. Validity Check (`isValid` Function)
+   - Ensures that placing a queen at `chessboard[row][col]` does not conflict with:
+     - **Vertical Attack**: Checks all rows above the current one to ensure no queen is in the same column.
+     - **Left Diagonal Attack**: Checks the upper left diagonal for any existing queen.
+     - **Right Diagonal Attack**: Checks the upper right diagonal for any existing queen.
+   - The function iterates over relevant positions to validate if placing a queen is safe.
+
+3. Chessboard Representation
+   - The board is represented as a 2D list initialized with `'.'` to denote empty spaces.
+   - Queens are placed using `'Q'`, and positions are reset to `'.'` when backtracking.
+
+4. Result Construction
+   - When a valid configuration is found (i.e., a queen is placed in every row), the board is converted into a list of strings and appended to `result`.
+   - The final `result` contains all possible valid configurations of placing `n` queens on the board.
+
+5. Backtracking Logic
+   - The `backtracing` function iterates over columns for each row.
+   - If placing a queen at a column is valid (`isValid` returns `True`):
+     - The queen is placed (`chessboard[row][i] = 'Q'`).
+     - The function recursively calls itself for the next row.
+     - The queen is removed (`chessboard[row][i] = '.'`) after the recursive call to explore other placements.
+
+6. Time Complexity
+   - The worst-case time complexity is **O(N!)** due to the exponential number of possible placements.
+   - The backtracking approach optimizes by pruning invalid paths early.
+
+7. Space Complexity
+   - The space complexity is **O(N^2)** for the chessboard and **O(N)** for the recursion stack.
+
+Code Structure
+- **`isValid` Function**: Checks if placing a queen at the current position is valid.
+- **`backtracing` Function**: Recursively places queens and backtracks when necessary.
+- **Result**: The final list of solutions, where each solution is a valid configuration of queens on the board.
+
+```python
+class Solution:
+    def solveNQueens(self, n: int) -> List[List[str]]:
+        def isValid(row: int, col: int, chessboard: List[List[str]]) -> bool:
+            for i in range(row):
+                if chessboard[i][col] == 'Q':
+                    return False
+            for i, j in zip(range(row-1, -1, -1), range(col-1, -1, -1)):
+                if chessboard[i][j] == 'Q':
+                    return False
+            for i, j in zip(range(row-1, -1, -1), range(col+1, n)):
+                if chessboard[i][j] == 'Q':
+                    return False
+            return True
+
+        def backtracing(row: int, chessboard: List[List[str]]):
+            if row == n:
+                result.append([''.join(r) for r in chessboard])
+                return
+
+            for i in range(n):
+                if isValid(row, i, chessboard):
+                    chessboard[row][i] = 'Q'
+                    backtracing(row+1, chessboard)
+                    chessboard[row][i] = '.'
+
+        result = []
+        chessboard = [['.' for _ in range(n)] for _ in range(n)]
+        backtracing(0, chessboard)
+        return result
+
+```
+
+## Sudoku Solver
+
+**Solution**:
+
+1. Problem Overview
+   - The Sudoku problem involves filling a 9x9 board so that each row, column, and 3x3 subgrid contains the digits 1 to 9 without repetition.
+   - The given board has some pre-filled numbers and empty cells denoted by `'.'`.
+
+2. Approach: Backtracking Algorithm
+   - The solution uses a **backtracking algorithm** to explore potential number placements recursively.
+   - The algorithm attempts to place each number from 1 to 9 in an empty cell, validates the placement, and proceeds to the next cell.
+   - If a placement leads to an invalid state, the algorithm **backtracks** by removing the number and trying the next possibility.
+
+3. `isValid` Function
+   - **Purpose**: Checks if placing a given number at `board[rowNum][colNum]` is valid according to Sudoku rules.
+   - **Row and Column Check**:
+      - Iterates through the specified row and column to ensure the number is not already present.
+   - **3x3 Subgrid Check**:
+       - Calculates the starting indices of the 3x3 subgrid using integer division (`rowNum // 3 * 3` and `colNum // 3 * 3`).
+   - Iterates through the subgrid to ensure the number is not present.
+   - **Return**:
+      - Returns `True` if the number can be placed without breaking any rules; otherwise, `False`.
+
+4. `backtracing` Function
+   - **Purpose**: Fills the board recursively by trying valid numbers in each empty cell.
+   - **Logic**:
+     - Iterates over each cell in the 9x9 grid.
+     - If an empty cell (`'.'`) is found, tries placing each number from 1 to 9.
+     - Calls `isValid` to check if the number can be placed.
+     - If a valid placement is found, places the number and recursively calls `backtracing` for the next cell.
+     - If placing a number leads to a solution, the function returns `True`.
+     - If no valid number can be placed, resets the cell to `'.'` and returns `False` to backtrack.
+   - **Base Case**:
+     - If all cells are filled correctly, returns `True` indicating the board is solved.
+
+5. In-Place Modification
+   - The function modifies the board directly without returning it, as per the problem requirement to solve the board **in-place**.
+
+6. Time Complexity
+   - **Worst Case**: **O(9^(N^2))**, where `N` is the size of the board (9 for a standard Sudoku).
+   - The backtracking approach explores all potential placements but prunes invalid paths early.
+
+7. Space Complexity
+   - **O(N^2)** due to the recursion stack in the backtracking process, where `N` is 9 (board size).
+   - The `isValid` function does not use additional data structures, keeping space usage minimal.
+
+8. Key Points
+   - **Recursive Approach**: Solves the problem by exploring, validating, and backtracking if needed.
+   - **Validation Function**: Ensures that each number placement adheres to Sudoku rules.
+   - **Backtracking**: Essential for handling incorrect placements and exploring alternate solutions.
+   - **Efficiency**: Prunes paths as soon as an invalid state is detected, improving performance.
+
+```python
+class Solution:
+     def solveSudoku(self, board: List[List[str]]) -> None:
+        def isValid(rowNum: int, colNum: int, num: str, board: List[List[str]]) -> bool:
+        # Check the row and column
+            for i in range(9):
+                if board[rowNum][i] == num or board[i][colNum] == num:
+                    return False
+
+            # Determine the starting indices of the 3x3 subgrid
+            rowStart = (rowNum // 3) * 3
+            colStart = (colNum // 3) * 3
+
+            # Check the 3x3 subgrid
+            for i in range(rowStart, rowStart + 3):
+                for j in range(colStart, colStart + 3):
+                    if board[i][j] == num:
+                        return False
+
+            return True
+        
+        def backtracing(board: List[List[str]]) -> bool:
+            for i in range(9):
+                for j in range(9):
+                    if board[i][j] == '.':
+                        for num in range(1, 10):
+                            if isValid(i, j, str(num), board):
+                                board[i][j] = str(num)
+                                if backtracing(board):
+                                    return True
+                                board[i][j] = '.'  # Backtrack
+                        return False  # If no valid number, return False
+            return True  # All cells are filled correctly
+
+        backtracing(board)  # Start the backtracking process
+
+```
