@@ -3113,3 +3113,378 @@ class Solution:
         backtracing(board)  # Start the backtracking process
 
 ```
+
+# Greedy Algorithm
+
+## Assign Cookies
+
+**Solution**:
+
+```python
+class Solution:
+    def findContentChildren(self, g: List[int], s: List[int]) -> int:
+        # Sort the greed factors of children in ascending order
+        g.sort()  
+        # Sort the sizes of cookies in ascending order
+        s.sort()  
+        
+        # Start with the largest cookie index
+        index = len(s) - 1  
+        result = 0  # Initialize the result to count content children
+        
+        # Iterate over the children starting from the most greedy to the least
+        for i in range(len(g) - 1, -1, -1):  
+            # Check if there is a cookie available and if it can satisfy the current child's greed
+            if index >= 0 and s[index] >= g[i]:  
+                result += 1  # Increment the result as the child is content
+                index -= 1  # Move to the next largest available cookie
+        
+        return result  # Return the total number of content children
+```
+
+## Wiggle Subsequence
+
+```python
+class Solution:
+    def wiggleMaxLength(self, nums: List[int]) -> int:
+        if not nums:
+            return 0
+        
+        # Initialize the length of the wiggle sequence
+        result = 1
+        prevDiff = 0
+        
+        for i in range(1, len(nums)):
+            diff = nums[i] - nums[i - 1]
+            
+            # Check if the current difference changes the direction
+            if (diff > 0 and prevDiff <= 0) or (diff < 0 and prevDiff >= 0):
+                result += 1
+                prevDiff = diff  # Update the previous difference
+        
+        return result
+
+```
+
+## Maximum Subarray
+
+**Solution**:
+1. Key Points
+   - **Greedy Extension**: Extend the subarray only if it results in a positive sum.
+   - **Reset Condition**: Start a new subarray if `preSum` becomes negative, ensuring that negative sums do not reduce the potential `maxSum`.
+
+```python
+class Solution:
+    def maxSubArray(self, nums: List[int]) -> int:
+        # Initialize preSum to track the current subarray sum starting with the first element
+        preSum = nums[0]
+        # Initialize maxSum to keep track of the maximum subarray sum found so far
+        maxSum = nums[0]
+
+        # Iterate through the array starting from the second element
+        for i in range(1, len(nums)):
+            # If preSum is negative, start a new subarray at the current element
+            # Otherwise, add the current element to the existing subarray sum
+            preSum = nums[i] if preSum < 0 else preSum + nums[i]
+            
+            # Update maxSum if the current subarray sum (preSum) is greater than maxSum
+            if preSum > maxSum:
+                maxSum = preSum
+                
+        # Return the maximum subarray sum found
+        return maxSum
+
+```
+
+## Best Time to Buy and Sell Stock II
+
+**Solution**:
+
+Key Points
+- **Greedy Choice**: Only add profit if `prices[i] > prices[i - 1]`. This ensures only profitable trades are considered.
+- **Time Complexity**: `O(n)` where `n` is the length of the `prices` list, as it iterates through the list once.
+- **Space Complexity**: `O(1)` as no additional space is required apart from simple variables.
+
+
+```python
+class Solution:
+    def maxProfit(self, prices: List[int]) -> int:
+        return sum(max(prices[i] - prices[i-1], 0) for i in range(1, len(prices)))
+
+```
+
+## Jump Game
+
+**Solution**: 
+
+**Greedy Approach**
+   - **Logic:**
+     - Iterate through each index and its jump length.
+     - If the current index is beyond `max_reach`, return `False` (cannot reach this point).
+     - Update `max_reach` to the maximum of its current value and `i + jump`.
+     - If `max_reach` reaches or exceeds `last_index`, return `True`.
+
+```python
+class Solution:
+    def canJump(self, nums: List[int]) -> bool:
+        # Corrected the empty list check
+        if not nums:
+            return True
+        
+        max_reach = 0 
+        last_index = len(nums) - 1
+        
+        for i, jump in enumerate(nums):
+            # If the current index is beyond the maximum reach, return False
+            if i > max_reach:
+                return False
+            
+            # Update the maximum reach
+            max_reach = max(max_reach, i + jump)
+            
+            # If we've reached or surpassed the last index, return True
+            if max_reach >= last_index:
+                return True
+        
+        # Final check in case the loop finishes without early termination
+        return max_reach >= last_index 
+
+```
+
+## Jump Game II
+
+**Solution**:
+
+1. **Greedy Approach**:
+   - The solution uses a greedy algorithm to find the minimum number of jumps needed to reach the end of the array by always choosing the farthest reachable index at each step.
+
+2. **Initialization**:
+   - `cur_max_reach`: Tracks the current maximum index that can be reached with the current number of jumps.
+   - `next_max_reach`: Keeps track of the farthest index that can be reached with an additional jump.
+   - `count`: Keeps track of the number of jumps taken.
+
+3. **Iterating Through the Array**:
+   - Traverse each index `i` in the array and update `next_max_reach` as the maximum of its current value and `i + nums[i]`, representing how far we can jump from index `i`.
+   - Check if `i` equals `cur_max_reach` to determine if the current jump segment has ended:
+     - Increment `count` since another jump is required to continue.
+     - Update `cur_max_reach` to `next_max_reach` to extend the jump range.
+     - Break the loop if `cur_max_reach` reaches or exceeds the last index, as no more jumps are needed.
+
+```python
+class Solution:
+    def jump(self, nums: List[int]) -> int:
+        # If the array has one or no elements, no jumps are needed
+        if len(nums) <= 1:
+            return 0
+
+        cur_max_reach, next_max_reach = 0, 0
+        count = 0
+        for i in range(len(nums)):
+            next_max_reach = max(next_max_reach, i+nums[i])
+
+            if i == cur_max_reach:
+                # When we reach the end of the current jump's reach
+                count += 1
+                cur_max_reach = next_max_reach
+
+                if cur_max_reach >= len(nums)-1:
+                    break
+
+        return count
+
+```
+
+## Maximize Sum Of Array After K Negations
+
+```python
+class Solution:
+    def largestSumAfterKNegations(self, nums: List[int], k: int) -> int:
+        heapq.heapify(nums)
+        
+        while k > 0:
+            smallest = heapq.heappop(nums)
+            heapq.heappush(nums, -smallest)
+            k -= 1
+
+        return sum(nums)
+        
+```
+
+**Solution**:
+
+1. **Sorting by Absolute Values**:
+   - The array `nums` is sorted by the absolute value of its elements in descending order (`nums.sort(key=lambda x: abs(x), reverse=True)`).
+   - Sorting by absolute value ensures that elements with the highest magnitude (greatest impact on the sum) are processed first, maximizing the benefit of any changes.
+
+2. **Negating Negative Elements**:
+   - The loop iterates through `nums` and negates any negative elements to increase the sum until `k` negations are exhausted.
+   - Each negation operation reduces `k` by 1.
+
+3. **Handling Remaining `k`**:
+   - After processing all negative elements, if `k` is still greater than 0 and odd, the smallest element (now at the end of the list after sorting by absolute value) is negated again to maximize the sum.
+   - This step (`nums[len(nums)-1] *= -1 if k % 2 == 1 else 1`) ensures that the parity of `k` is taken into account:
+     - If `k` is even, no further changes are made because negating an element twice results in no net change.
+     - If `k` is odd, the last element is flipped to minimize the impact of the final negation.
+
+4. **Return the Sum**:
+   - The sum of the modified `nums` is returned as the final result.
+
+
+```python
+class Solution:
+    def largestSumAfterKNegations(self, nums: List[int], k: int) -> int:
+        # Sort the array by the absolute value of each element in descending order
+        nums.sort(key=lambda x: abs(x), reverse=True)
+
+        # Negate negative numbers until k is exhausted or no more negative numbers remain
+        for i in range(len(nums)):
+            if k > 0 and nums[i] < 0:
+                nums[i] = -nums[i]  # Negate the current negative element
+                k -= 1  # Decrease k for each negation
+        
+        # If k is odd, negate the smallest (least impactful) element to maximize the sum
+        # This handles the scenario where k is still greater than 0 after processing
+        nums[len(nums) - 1] *= -1 if k % 2 == 1 else 1
+
+        # Return the sum of the modified array
+        return sum(nums)
+
+```
+
+## Gas Station
+
+**Solution**:
+
+1. **Initialize Variables**:
+   - `cur_sum`: Tracks the running gas balance from the current starting station to check if the journey can proceed.
+   - `total_sum`: Tracks the total gas balance across all stations to determine if the circuit is possible.
+   - `start`: Stores the candidate starting index for a potential full circuit.
+
+2. **Loop Through Each Station**:
+   - For each station `i`:
+     - Calculate `gas_gain = gas[i] - cost[i]` to get the net gain or loss of gas at that station.
+     - Update `cur_sum` with `gas_gain` to keep a running balance from the current `start`.
+     - Update `total_sum` with `gas_gain` to track the overall gas balance.
+
+3. **Check for Negative Running Balance (`cur_sum`)**:
+   - If `cur_sum` becomes negative, it means we cannot reach the current station `i` from the current `start`.
+   - Update `start` to `i + 1` (next station) as the new starting point.
+   - Reset `cur_sum` to `0` to start tracking from the new starting station.
+
+4. **Final Check**:
+   - If `total_sum` is negative after the loop, it means the total gas is insufficient to complete the circuit, so return `-1`.
+   - If `total_sum` is non-negative, return `start` as the starting index from which a complete circuit is possible.
+
+5. **Complexity**:
+   - **Time Complexity**: `O(n)` since we only make a single pass through the `gas` and `cost` arrays.
+   - **Space Complexity**: `O(1)` as only a few extra variables are used.
+
+```python
+class Solution:
+    def canCompleteCircuit(self, gas: List[int], cost: List[int]) -> int:
+        # Initialize variables to keep track of current sum, total sum, and starting position
+        cur_sum, total_sum = 0, 0
+        start = 0  # Starting index of the journey
+
+        # Loop through each gas station
+        for i in range(len(gas)):
+            # Calculate the net gas gain/loss at the current station
+            gas_gain = gas[i] - cost[i]
+            cur_sum += gas_gain  # Update the running sum for the current segment
+            total_sum += gas_gain  # Update the total sum for all stations
+
+            # If the current sum falls below zero, reset the starting position
+            # as we can't reach this point from the previous `start`
+            if cur_sum < 0:
+                start = i + 1  # Set the next station as the new starting point
+                cur_sum = 0  # Reset current sum for the new start segment
+
+        # If the total sum is negative, we cannot complete the circuit
+        if total_sum < 0:
+            return -1
+
+        # If the total sum is non-negative, the journey can be completed
+        return start
+
+```
+
+## Candy
+
+**Solution**:
+
+1. **Single Array for Candies**:
+   - Use a single array `assigned_candy` initialized with `1` for each child, as each child must have at least one candy.
+   
+2. **Two-Pass Strategy**:
+   - **Left-to-Right Pass**:
+     - Traverse the ratings from left to right.
+     - For each child, if their rating is higher than the previous child’s rating, increase their candy count by 1 more than the previous child’s candy count.
+   - **Right-to-Left Pass**:
+     - Traverse the ratings from right to left.
+     - For each child, if their rating is higher than the next child’s rating, set their candy count to the maximum of their current count or `assigned_candy[i + 1] + 1`.
+     - This ensures that any higher-rated child has more candies than their right neighbor.
+
+3. **Summing Total Candies**:
+   - After the two passes, `assigned_candy` contains the correct minimum candies for each child.
+   - The total number of candies is the sum of all elements in `assigned_candy`.
+
+4. **Complexity**:
+   - **Time Complexity**: `O(n)`, with two linear passes through the array.
+   - **Space Complexity**: `O(n)`, for storing candy counts in `assigned_candy`.
+
+```python
+class Solution:
+    def candy(self, ratings: List[int]) -> int:
+        n = len(ratings)
+        assigned_candy = [1] * n  # Initialize each child's candy count to 1
+
+        # Left-to-right pass: ensure each child has more candies than the one before if the rating is higher
+        for i in range(1, n):
+            if ratings[i] > ratings[i - 1]:
+                assigned_candy[i] = assigned_candy[i - 1] + 1
+
+        # Right-to-left pass: ensure each child has more candies than the one after if the rating is higher
+        for i in range(n - 2, -1, -1):
+            if ratings[i] > ratings[i + 1]:
+                assigned_candy[i] = max(assigned_candy[i], assigned_candy[i + 1] + 1)
+
+        # Sum up the total candies required
+        return sum(assigned_candy)
+    
+```
+
+## Lemonade Change
+
+```python
+class Solution:
+    def lemonadeChange(self, bills: List[int]) -> bool:
+        five_count, ten_count = 0, 0  # Counters for $5 and $10 bills
+
+        for bill in bills:
+            if bill == 5:
+                # Accept $5 bill, no change needed
+                five_count += 1
+
+            elif bill == 10:
+                # Accept $10 bill, need to give back one $5 bill as change
+                if five_count >= 1:
+                    five_count -= 1
+                    ten_count += 1
+                else:
+                    return False  # Not enough $5 bills to give change
+
+            elif bill == 20:
+                # Accept $20 bill, prefer to give back one $10 and one $5 if possible
+                if ten_count >= 1 and five_count >= 1:
+                    ten_count -= 1
+                    five_count -= 1
+                elif five_count >= 3:
+                    # Otherwise, give three $5 bills as change
+                    five_count -= 3
+                else:
+                    return False  # Not enough bills to give change
+
+        # If we never ran out of change, return True
+        return True
+    
+```
