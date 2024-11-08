@@ -3488,3 +3488,755 @@ class Solution:
         return True
     
 ```
+
+## Queue Reconstruction by Height
+
+**Solution**:
+
+- Sort by height descending and `k` ascending.
+- Insert each person in their `k` position in `new_queue`, ensuring all `k` constraints are met.
+- Return `new_queue` as the final reconstructed queue.
+
+```python
+class Solution:
+    def reconstructQueue(self, people: List[List[int]]) -> List[List[int]]:
+        # Edge case: if there's only one person, return the list as is
+        if len(people) == 1:
+            return people
+        
+        # Step 1: Sort the people by height in descending order.
+        # If two people have the same height, sort them by their 'k' value in ascending order.
+        people.sort(key=lambda x: (-x[0], x[1]))
+        
+        # Initialize an empty list to build the queue
+        new_queue = []
+        
+        # Step 2: Insert each person into the new_queue at the index specified by their 'k' value.
+        # Since taller people are placed first, each insertion respects the 'k' value constraint.
+        for person in people:
+            pos = person[1]  # 'k' is the position index for this person
+            new_queue.insert(pos, person)  # Insert person at index 'pos'
+        
+        return new_queue  # Return the reconstructed queue
+
+```
+
+## Minimum Number of Arrows to Burst Balloons
+
+**Solution**:
+
+- Sort balloons by starting position.
+- Track overlapping intervals and minimize the number of arrows by merging overlapping intervals where possible.
+
+```python
+class Solution:
+    def findMinArrowShots(self, points: List[List[int]]) -> int:
+        # Sort points by the starting position of each balloon
+        points.sort(key=lambda x: x[0])
+
+        # Start with one arrow as we need at least one to burst the first balloon
+        count = 1
+        
+        # Iterate through each balloon interval starting from the second balloon
+        for i in range(1, len(points)):
+            # If the current balloon starts after the previous balloon ends, we need a new arrow
+            if points[i][0] > points[i-1][1]:
+                count += 1  # Increment arrow count
+            else:
+                # Overlapping balloons can be burst with the same arrow
+                # Update the end of the current interval to the minimum of overlapping ends
+                points[i][1] = min(points[i-1][1], points[i][1])
+
+        return count  # Return the minimum number of arrows required
+
+```
+
+## Non-overlapping Intervals
+
+**Solution**:
+
+```python
+class Solution:
+    def eraseOverlapIntervals(self, intervals: List[List[int]]) -> int:
+        # Edge case: If there's only one interval, no removals are needed
+        if len(intervals) == 1:
+            return 0
+
+        # Step 1: Sort intervals by the starting position
+        intervals.sort(key=lambda x: x[0])
+
+        # Initialize count of intervals to remove to avoid overlap
+        count = 0
+
+        # Step 2: Iterate through each interval starting from the second one
+        for i in range(1, len(intervals)):
+            # Check if there's an overlap between the current and previous interval
+            if intervals[i-1][1] > intervals[i][0]:
+                # Increment count as we need to remove one of the overlapping intervals
+                count += 1
+                # Adjust the end of the current interval to minimize further overlaps
+                intervals[i][1] = min(intervals[i-1][1], intervals[i][1])
+
+        return count  # Return the minimum number of intervals to remove
+
+```
+
+## Partition Labels
+
+**Solution**:
+
+1. **Tracking Last Occurrences**:
+   - Use a dictionary `last_occurrence` to store the last index of each character in `s`.
+   - This dictionary helps quickly find the end boundary for each partition.
+
+2. **Single Pass for Partitioning**:
+   - Iterate through `s` while tracking a `right` boundary, which represents the furthest point of the current partition.
+   - For each character, update `right` to the maximum of its last known position (`last_occurrence[char]`).
+   - When the current index `i` equals `right`, a complete partition is identified.
+
+3. **Storing Partition Lengths**:
+   - When a partition boundary is reached (`i == right`), calculate the partition length (`right - left + 1`) and add it to the result list `result`.
+   - Move `left` to `i + 1` to start a new partition from the next character.
+
+4. **Return Result**:
+   - After iterating through `s`, `result` contains the lengths of each partition, satisfying the required constraints.
+
+5. **Complexity Analysis**:
+   - **Time Complexity**: `O(n)`, where `n` is the length of `s`, as we make one pass to build `last_occurrence` and another to partition `s`.
+   - **Space Complexity**: `O(1)` auxiliary space, since `last_occurrence` has at most 26 entries for lowercase letters.
+
+```python
+class Solution:
+    def partitionLabels(self, s: str) -> List[int]:
+        # Dictionary to store the last occurrence index of each character
+        last_occurrence = {char: idx for idx, char in enumerate(s)}
+
+        result = []
+        left, right = 0, 0
+
+        # Single pass to determine partitions
+        for i, char in enumerate(s):
+            # Update `right` to the furthest last occurrence of the current character
+            right = max(right, last_occurrence[char])
+
+            # If the current index reaches the `right` boundary, we have a complete partition
+            if i == right:
+                # Add the partition length to `result`
+                result.append(right - left + 1)
+
+                # Move `left` to the next index after the current partition
+                left = i + 1
+
+        return result
+```
+
+## Merge Intervals
+
+**Solution**:
+
+1. **Sorting by Start Times**:
+   - Sort `intervals` by their starting position using `intervals.sort(key=lambda x: x[0])`.
+   - Sorting helps position intervals sequentially, allowing us to easily detect and merge overlaps.
+
+2. **Iterative Merging Process**:
+   - Initialize `result` with the first interval as a starting reference for merging.
+   - For each subsequent interval:
+     - **If Overlapping**: If the current interval starts before or when the last merged interval ends (`intervals[i][0] <= result[-1][1]`), merge by updating the end of the last interval in `result` to the maximum end time.
+     - **If Not Overlapping**: If the current interval does not overlap, add it as a new interval in `result`.
+
+3. **Return Merged Intervals**:
+   - After processing all intervals, `result` contains all merged intervals.
+
+4. **Complexity Analysis**:
+   - **Time Complexity**: `O(n log n)` due to sorting.
+   - **Space Complexity**: `O(n)`, as we store the merged intervals in `result`.
+
+```python
+class Solution:
+    def merge(self, intervals: List[List[int]]) -> List[List[int]]:
+        intervals.sort(key=lambda x: x[0])
+
+        result = [intervals[0]]
+        for i in range(1, len(intervals)):
+            if intervals[i][0] <= result[-1][1]:
+                result[-1][1] = max(result[-1][1], intervals[i][1])
+            else:
+                result.append(intervals[i])
+        return result
+
+```
+
+## Monotone Increasing Digits
+
+**Solution**:
+
+1. **Convert the Number to a List of Digits**:
+   - Convert the integer `n` to a list of string digits to allow in-place manipulation.
+
+2. **Identify the "Change Point"**:
+   - Traverse the list of digits from right to left.
+   - For each pair of adjacent digits `(digits[i-1], digits[i])`:
+     - If `digits[i-1] > digits[i]`, it indicates a break in the monotonic increase.
+     - Decrement `digits[i-1]` by 1 and set `change_point` to `i`.
+     - This ensures that all digits after `change_point` will be changed to maintain the monotone property.
+
+3. **Set Trailing Digits to '9'**:
+   - For all positions after `change_point`, set digits to `'9'`.
+   - This guarantees the largest possible monotone increasing number up to the original value of `n`.
+
+4. **Return the Result as an Integer**:
+   - Join the modified list of digits back into a string, convert it to an integer, and return the result.
+
+5. **Complexity**:
+- **Time Complexity**: \(O(d)\), where \(d\) is the number of digits in `n`.
+- **Space Complexity**: \(O(d)\), for storing the list of digits.
+
+```python
+class Solution:
+    def monotoneIncreasingDigits(self, n: int) -> int:
+        # Convert the number to a list of characters (digits) for easy manipulation
+        digits = list(str(n))
+
+        # Initialize change_point to mark where we start setting digits to '9'
+        change_point = len(digits)
+
+        # Traverse the number from the end to the beginning
+        for i in range(len(digits) - 1, 0, -1):
+            # If the current digit is less than the previous one, we need to adjust
+            if digits[i - 1] > digits[i]:
+                # Decrement the previous digit by 1
+                digits[i - 1] = str(int(digits[i - 1]) - 1)
+                # Update the change_point to the current index
+                change_point = i
+
+        # Set all digits after change_point to '9' to ensure monotonic increase
+        for i in range(change_point, len(digits)):
+            digits[i] = '9'
+
+        # Convert the list of characters back to an integer and return it
+        return int(''.join(digits))
+    
+```
+
+## Binary Tree Cameras
+
+**Solution**:
+
+1. **Define State Constants**:
+   - `COVERED = 0`: Node is covered by a camera but does not have a camera itself.
+   - `HAS_CAMERA = 1`: Node has a camera.
+   - `NOT_COVERED = 2`: Node is not covered by any camera.
+
+2. **Recursive Traversal Function**:
+   - Use a helper function `traversal(cur: TreeNode)` to determine the state of each node.
+   - The function recursively evaluates each node’s left and right children, determining the minimal camera placement to cover all nodes.
+
+3. **State Conditions in Traversal**:
+   - **If both children are `COVERED`**:
+     - Return `NOT_COVERED` for the current node, as it has no camera coverage.
+   - **If either child is `NOT_COVERED`**:
+     - Place a camera at the current node (`HAS_CAMERA`) and increment `result`.
+   - **If either child has a camera (`HAS_CAMERA`)**:
+     - Mark the current node as `COVERED`.
+
+4. **Final Camera Check at Root**:
+   - After calling `traversal(root)`, if the root is still `NOT_COVERED`, increment `result` to cover the root node with a final camera.
+
+5. **Return the Result**:
+   - `result` now holds the minimum number of cameras needed to cover all nodes in the tree.
+
+## Complexity
+- **Time Complexity**: `O(n)` where `n` is the number of nodes, as each node is visited once.
+- **Space Complexity**: `O(h)` where `h` is the height of the tree, due to recursive call stack depth.
+
+```python
+class Solution:
+    def minCameraCover(self, root: Optional[TreeNode]) -> int:
+        # Define state constants to represent each node's coverage status
+        COVERED = 0         # Node is covered but does not have a camera
+        HAS_CAMERA = 1      # Node has a camera
+        NOT_COVERED = 2     # Node is not covered by any camera
+
+        result = 0  # Initialize camera count to zero
+
+        # Define a helper function to perform post-order traversal on the tree
+        def traversal(cur: Optional[TreeNode]) -> int:
+            nonlocal result
+            # If node is None (base case for leaf children), it is covered by default
+            if not cur:
+                return COVERED
+
+            # Recursively check the left and right children states
+            left_state = traversal(cur.left)
+            right_state = traversal(cur.right)
+
+            # Case 1: If both children are COVERED, the current node is NOT_COVERED
+            # It will rely on its parent to cover it.
+            if left_state == COVERED and right_state == COVERED:
+                return NOT_COVERED
+
+            # Case 2: If either child is NOT_COVERED, place a camera at the current node
+            # This covers both the node and its children.
+            if left_state == NOT_COVERED or right_state == NOT_COVERED:
+                result += 1
+                return HAS_CAMERA
+
+            # Case 3: If either child has a camera, the current node is covered
+            # No need for a camera here.
+            if left_state == HAS_CAMERA or right_state == HAS_CAMERA:
+                return COVERED
+
+            # This line should not be reached with correct input and logic
+            return -1
+
+        # After traversal, check if the root node is covered
+        # If root is still NOT_COVERED, add one final camera at the root
+        if traversal(root) == NOT_COVERED:
+            result += 1
+
+        # Return the total number of cameras needed
+        return result
+```
+
+p.s.,
+
+| Feature         | `global`                                       | `nonlocal`                                           |
+|-----------------|------------------------------------------------|------------------------------------------------------|
+| **Scope**       | Refers to the global (module-level) scope      | Refers to the nearest enclosing non-global scope     |
+| **Usage**       | Modify/access a module-level variable          | Modify/access a variable in an enclosing function    |
+| **Typical Use** | Used when multiple functions need to share module-level state | Used in nested functions to modify the outer function’s variable |
+| **Availability**| Available across the entire module             | Limited to the function it’s enclosed in             |
+
+E.g.,
+```python
+count = 0  # This is a global variable
+
+def increment():
+    global count  # Refers to the global 'count' variable
+    count += 1
+
+increment()
+print(count)  # Output: 1
+```
+
+```python
+def outer_function():
+    count = 0  # This is in the outer function's scope
+
+    def inner_function():
+        nonlocal count  # Refers to the 'count' in outer_function
+        count += 1
+
+    inner_function()
+    return count
+
+print(outer_function())  # Output: 1
+```
+
+# Dynamic Programing
+
+**Five Steps to Solve a Dynamic Programming (DP) Problem**
+
+1. Define the Subproblem and State Representation
+   - **Identify** the problem's subproblems by breaking down the problem into smaller components.
+   - **Define the State**: Determine a state that captures the essence of a subproblem, making it easier to build toward the solution.
+   - **Example**: For finding the longest increasing subsequence, define `dp[i]` as the length of the longest subsequence that ends at index `i`.
+
+2. Formulate the Recurrence Relation
+   - **Identify how to relate** the current state to previous states.
+   - **Create a Recurrence Relation**: Write a formula that defines how each state can be derived from the previous states.
+   - **Example**: In the Fibonacci sequence, the recurrence relation is `F(n) = F(n-1) + F(n-2)`.
+
+3. Identify and Initialize Base Cases
+   - **Base Cases** provide the starting points to fill in the DP table or cache values in memoization.
+   - **Initialize** the smallest subproblem(s) explicitly to allow subsequent states to be computed.
+   - **Example**: For Fibonacci, the base cases are `F(0) = 0` and `F(1) = 1`.
+
+4. Choose and Implement the Approach (Top-Down or Bottom-Up)
+   - **Top-Down (Memoization)**: Use recursion with a cache to store results as they are computed, which prevents redundant calculations.
+   - **Bottom-Up (Tabulation)**: Use an iterative approach to fill up a table from base cases up to the final solution.
+   - **Example**: For Fibonacci, you can either use recursive memoization or a loop to calculate values up to `F(n)`.
+
+5. Optimize and Test
+   - **Optimize Space** by reducing the dimensions of the DP array if possible (common in problems like Fibonacci).
+   - **Test** with various inputs, including edge cases, to ensure accuracy.
+   - **Example**: In the knapsack problem, test with cases like small capacities, large weights, and scenarios with zero or a single item to ensure correctness.
+
+## Climbing Stairs
+
+**Solution**:
+
+## Recurrence Relation
+
+To reach step \( n \), you can arrive from:
+- Step \( n - 1 \) (by taking a single step).
+- Step \( n - 2 \) (by taking a double step).
+
+Thus, the number of ways to reach step \( n \) is the sum of the ways to reach steps \( n - 1 \) and \( n - 2 \).
+
+```python
+class Solution:
+    def climbStairs(self, n: int) -> int:
+        # Base case: if there's only one step, there's only one way to climb it
+        if n == 1:
+            return 1
+        
+        # Initialize a DP array with two elements to store ways for the last two steps
+        # dp[0] represents the number of ways to reach two steps before
+        # dp[1] represents the number of ways to reach the last step
+        dp = [1, 1]
+        
+        # Loop from step 2 up to n, calculating the number of ways to reach each step
+        for _ in range(2, n + 1):
+            # Calculate the number of ways to reach the current step
+            # It's the sum of the ways to reach the previous step (dp[1])
+            # and the step before that (dp[0])
+            cur = dp[0] + dp[1]
+            
+            # Update the DP array for the next iteration
+            # Shift the values forward: dp[1] becomes the new dp[0], and cur becomes the new dp[1]
+            dp[0] = dp[1]
+            dp[1] = cur
+        
+        # dp[1] now holds the number of ways to reach the nth step
+        return dp[1]
+
+```
+
+## Min Cost Climbing Stairs
+
+**Solution**:
+
+1. **Dynamic Programming (DP) Approach**:
+   - Define a DP array `dp` where `dp[i]` represents the minimum cost to reach the \( i \)-th step.
+   - We use the `cost` array to calculate the minimum cost dynamically at each step, considering both the previous one and two steps.
+
+2. **Base Cases**:
+   - `dp[0] = cost[0]`: The cost to reach the first step is the cost of that step.
+   - `dp[1] = cost[1]`: The cost to reach the second step is the cost of that step.
+
+3. **Recurrence Relation**:
+   - To reach step \( i \), you can come from:
+     - Step \( i - 1 \) with an additional cost of `cost[i]`.
+     - Step \( i - 2 \) with an additional cost of `cost[i]`.
+   - Therefore, the minimum cost to reach step \( i \) is:
+     \[
+     dp[i] = min(dp[i - 1] + cost[i], dp[i - 2] + cost[i])
+     \]
+
+4. **Final Result Calculation**:
+   - To reach the top of the staircase, you can either arrive from the last step or the second-to-last step, so:
+   
+   result = min(dp[-1], dp[-2])
+
+- **Recurrence Relation**: \( dp[i] = \min(dp[i - 1] + cost[i], dp[i - 2] + cost[i]) \)
+- **Time Complexity**: \( O(n) \), where \( n \) is the number of steps, as we calculate the minimum cost for each step once.
+- **Space Complexity**: \( O(n) \), as we store the minimum cost for each step in the DP array.
+
+```python
+class Solution:
+    def minCostClimbingStairs(self, cost: List[int]) -> int:
+        # If there are only two steps, return the minimum of the two, as that's the minimum cost to reach the top
+        if len(cost) == 2:
+            return min(cost)
+        
+        # Initialize a DP array where dp[i] represents the minimum cost to reach step i
+        dp = [0] * len(cost)
+        dp[0], dp[1] = cost[0], cost[1]
+        
+        # Fill the DP array with the minimum cost to reach each step starting from step 2
+        for i in range(2, len(cost)):
+            # The cost to reach step i is the minimum of reaching it from i-1 or i-2
+            dp[i] = min(dp[i - 1] + cost[i], dp[i - 2] + cost[i])
+        
+        # The result is the minimum cost of reaching the top, which can be done either from the last step
+        # or the second-to-last step
+        return min(dp[-1], dp[-2])
+
+```
+
+## Unique Paths
+
+**Solution**:
+1. **Define the Problem in Terms of Subproblems**:
+   - The goal is to find the number of unique paths from the top-left corner to the bottom-right corner of an `m x n` grid.
+   - Define `dp[col]` as the number of unique paths to reach the cell in the current row at column `col`.
+   - This breaks down the problem into subproblems where each cell's unique path count can be derived from the cell directly above and the cell to the left.
+
+2. **Identify the Recurrence Relation**:
+   - The number of unique paths to reach a cell `(row, col)` is the sum of the paths to the cell directly above it and the cell to the left.
+   - This gives the recurrence relation: 
+     \[
+     dp[col] = dp[col] + dp[col - 1]
+     \]
+   - Here, `dp[col]` initially holds the paths from the row above, and `dp[col - 1]` provides the paths from the left cell.
+
+3. **Define Base Cases**:
+   - For the first row or first column, there is only one way to reach each cell (either moving right or moving down).
+   - Initialize the `dp` array with `1`s because all cells in the first row of the grid can only be reached in one way.
+   
+4. **Determine the Iterative Approach**:
+   - Use a single 1D array `dp` of size `n` to store the number of unique paths for each column in the current row.
+   - Iterate row by row and, for each cell `(row, col)`, update `dp[col]` in place by adding `dp[col - 1]`.
+   - This way, `dp[col]` accumulates the paths from the left cell (`dp[col - 1]`) and keeps the count from the above cell (`dp[col]`).
+
+```python
+class Solution:
+    def uniquePaths(self, m: int, n: int) -> int:
+        dp = [[0] * n for _ in range(m)]
+        dp[0][0] = 1
+        
+        for row in range(m):
+            for col in range(n):
+                if row == 0 and col == 0:
+                    continue
+
+                if row == 0:
+                    dp[row][col] += dp[row][col-1]
+                elif col == 0:
+                    dp[row][col] += dp[row-1][col]
+                else:
+                    dp[row][col] += (dp[row][col-1] + dp[row-1][col])
+        return dp[m-1][n-1]
+        
+```
+
+```python
+class Solution:
+    def uniquePaths(self, m: int, n: int) -> int:
+        dp = [1] * n  # Initialize a 1D dp array with 1s, representing the first row
+        
+        for row in range(1, m):  # Start from the second row
+            for col in range(1, n):  # Start from the second column
+                dp[col] += dp[col - 1]  # Update the current cell with the sum of the cell to the left and itself
+
+        return dp[-1]  # The last element contains the number of unique paths
+
+```
+
+## Unique Paths II
+
+**Solution**:
+
+1. **Handle Edge Case for Starting Obstacle**:
+   - If the starting cell `(0, 0)` contains an obstacle, immediately return `0` since no paths are available.
+
+2. **Initialize the 1D DP Array**:
+   - Use a 1D `dp` array of size `n` (number of columns), initialized with `0`s.
+   - Set `dp[0]` to `1` to represent the starting cell, assuming it's not blocked.
+
+3. **Iterate Through the Grid and Update Paths with Obstacles**:
+   - For each cell `(row, col)` in the grid:
+     - If `obstacleGrid[row][col] == 1`, set `dp[col] = 0`, indicating that cell is unreachable.
+     - Otherwise, if `col > 0`, update `dp[col] += dp[col - 1]` to accumulate paths from the left cell.
+   - This approach effectively incorporates obstacles by setting paths to `0` where obstacles exist.
+
+```python
+class Solution:
+    def uniquePathsWithObstacles(self, obstacleGrid: List[List[int]]) -> int:
+        if obstacleGrid[0][0] == 1:
+            return 0
+
+        m, n = len(obstacleGrid), len(obstacleGrid[0])
+        dp = [[0]*n for _ in range(m)]
+        dp[0][0] = 1
+
+        for row in range(m):
+            for col in range(n):
+                if obstacleGrid[row][col] == 1:
+                    continue
+
+                if col == 0 and row == 0:
+                    continue
+
+                if row == 0:
+                    dp[row][col] += dp[row][col-1]
+                elif col == 0:
+                    dp[row][col] += dp[row-1][col]
+                else:
+                    dp[row][col] += (dp[row][col-1] + dp[row-1][col])
+
+        return dp[-1][-1]
+
+```
+
+```python
+class Solution:
+    def uniquePathsWithObstacles(self, obstacleGrid: List[List[int]]) -> int:
+        if obstacleGrid[0][0] == 1:
+            return 0
+
+        m, n = len(obstacleGrid), len(obstacleGrid[0])
+        dp = [0] * n
+        dp[0] = 1  # Start point
+
+        for row in range(m):
+            for col in range(n):
+                if obstacleGrid[row][col] == 1:
+                    dp[col] = 0  # Set dp[col] to 0 if there's an obstacle
+                elif col > 0:
+                    dp[col] += dp[col - 1]  # Update dp[col] by adding paths from the left
+
+        return dp[-1]  # The number of unique paths to the bottom-right corner
+
+```
+
+## Integer Break
+
+**Solution**:
+
+1. **Define the Problem in Terms of Subproblems**:
+   - Given an integer `n`, the task is to break it into at least two positive integers such that their product is maximized.
+   - Define `dp[i]` as the maximum product obtainable by breaking the integer `i`.
+
+2. **Base Case Initialization**:
+   - Set `dp[2] = 1`, as the maximum product obtainable by breaking `2` is `1 * 1 = 1`.
+   - There is no need to initialize `dp[0]` or `dp[1]` for this problem, as they do not contribute to any solution.
+
+3. **Recurrence Relation / State Transition**:
+   - For each integer `i` from `3` to `n`, consider splitting it into two parts: `j` and `i - j`.
+   - The maximum product is calculated by:
+     
+     $dp[i] = \max(dp[i], j \times (i - j), j \times dp[i - j])$
+     
+   - This relation considers both:
+     - Breaking `(i - j)` further (using `dp[i - j]`).
+     - Not breaking `(i - j)` further, simply taking the product `j * (i - j)`.
+
+4. **Iteration over Possible Splits**:
+   - Only iterate over values of `j` up to `i // 2` for each `i` since splitting `i` at `j` or `i - j` yields symmetric results.
+
+5. **Final Solution**:
+   - After populating the `dp` array up to `n`, `dp[n]` contains the maximum product obtainable by breaking `n`.
+
+
+```python
+class Solution:
+    def integerBreak(self, n: int) -> int:
+        # Initialize dp array to store the maximum product for each integer up to n
+        dp = [0] * (n + 1)
+        
+        # Base case: breaking 2 yields the maximum product of 1 (1 + 1)
+        dp[2] = 1
+
+        # Start filling dp array from 3 to n
+        for i in range(3, n + 1):
+            # Try to split the number i into two parts j and (i - j)
+            for j in range(1, i // 2 + 1):
+                # Calculate the maximum product by either:
+                # 1. Not breaking (i - j) further: j * (i - j)
+                # 2. Breaking (i - j) further using dp[i - j]
+                dp[i] = max(j * (i - j), j * dp[i - j], dp[i])
+
+        # The last element in dp array, dp[n], is the answer
+        return dp[n]
+
+```
+
+## Unique Binary Search Trees
+
+**Solution**:
+
+1. **Define the Problem in Terms of Subproblems**:
+   - The goal is to count the number of unique Binary Search Trees (BSTs) that can be formed with `n` distinct nodes.
+   - Define `dp[i]` as the number of unique BSTs that can be formed using `i` nodes.
+
+2. **Base Case Initialization**:
+   - `dp[0] = 1`: An empty tree (0 nodes) has one unique structure.
+   - `dp[1] = 1`: A single-node tree has only one unique structure.
+   - `dp[2] = 2`: Two nodes can form two unique BSTs, either left-rooted or right-rooted.
+
+3. **Recurrence Relation / State Transition**:
+   - For each `i` from `3` to `n`, compute `dp[i]` by considering each possible node as the root of the tree.
+   - If `j` is chosen as the root, the left subtree has `j - 1` nodes and the right subtree has `i - j` nodes.
+   - The recurrence relation is:
+     \[
+     dp[i] += dp[j - 1] \times dp[i - j]
+     \]
+   - This accounts for all unique combinations of left and right subtrees formed with `i` nodes.
+
+4. **Iteration over Possible Root Choices**:
+   - For each `i`, iterate through each node `j` (from `1` to `i`) to consider it as the root.
+   - Multiply the number of unique BSTs on the left and right subtrees to account for all possible configurations.
+
+5. **Final Result**:
+   - After filling the `dp` array, `dp[n]` will contain the number of unique BSTs that can be formed with `n` nodes.
+
+### Complexity Analysis
+- **Time Complexity**: \(O(n^2)\), due to the nested loops over `i` and `j` (each up to `n`).
+- **Space Complexity**: \(O(n)\), for the `dp` array of size `n + 1`.
+
+```python
+class Solution:
+    def numTrees(self, n: int) -> int:
+        # Handle the base case for n=1 directly
+        if n == 1:
+            return 1
+
+        # Initialize dp array where dp[i] represents the number of unique BSTs with i nodes
+        dp = [0] * (n + 1)
+        
+        # Base cases:
+        dp[0] = 1  # Empty tree (0 nodes) has one unique structure
+        dp[1] = 1  # One node has only one unique structure
+        dp[2] = 2  # Two nodes can be arranged in two unique BST structures
+        
+        # Fill dp array for each number of nodes from 3 to n
+        for i in range(3, n + 1):
+            # Calculate dp[i] by summing the number of unique BSTs for each possible root position
+            for j in range(1, i + 1):
+                # dp[j-1] represents left subtree options, dp[i-j] represents right subtree options
+                dp[i] += dp[j - 1] * dp[i - j]
+        
+        # The result is the number of unique BSTs that can be formed with n nodes
+        return dp[n]
+    
+```
+
+1. **Why `j-1` for the Left Subtree**
+- If `j` is the root, all nodes less than `j` go to the left subtree.
+- The values `{1, 2, ..., j-1}` are all less than `j`, so there are exactly `j-1` nodes in the left subtree.
+- `dp[j-1]` therefore represents the number of unique BSTs that can be formed with these `j-1` nodes.
+
+2. **Why `i-j` for the Right Subtree**
+- Similarly, all nodes greater than `j` go to the right subtree.
+- Since `i` is the total number of nodes and `j` is the root (with `j-1` nodes in the left subtree), the remaining nodes for the right subtree are `i - j`.
+- The values `{j+1, j+2, ..., i}` are greater than `j`, so there are exactly `i-j` nodes in the right subtree.
+- `dp[i-j]` represents the number of unique BSTs that can be formed with these `i-j` nodes.
+
+### Example: Calculating `dp[3]`
+
+To see how this works in practice, let’s calculate `dp[3]`, the number of unique BSTs that can be formed with nodes `1, 2, 3`:
+
+1. **Initialize Base Cases**:
+   - `dp[0] = 1`: An empty tree has one unique structure.
+   - `dp[1] = 1`: A single-node tree has only one unique structure.
+   - `dp[2] = 2`: With two nodes, there are two unique BSTs: left-rooted and right-rooted trees.
+
+2. **Calculate `dp[3]` by Considering Each Node as the Root**:
+   - For each node `j` (from `1` to `3`) as the root, calculate the possible BSTs for the left and right subtrees.
+
+#### Case-by-Case Breakdown:
+- **When `j = 1`**:
+  - Left subtree has `j - 1 = 0` nodes, so `dp[0] = 1`.
+  - Right subtree has `i - j = 3 - 1 = 2` nodes, so `dp[2] = 2`.
+  - Total BSTs with `1` as root: `dp[0] * dp[2] = 1 * 2 = 2`.
+
+- **When `j = 2`**:
+  - Left subtree has `j - 1 = 1` node, so `dp[1] = 1`.
+  - Right subtree has `i - j = 3 - 2 = 1` node, so `dp[1] = 1`.
+  - Total BSTs with `2` as root: `dp[1] * dp[1] = 1 * 1 = 1`.
+
+- **When `j = 3`**:
+  - Left subtree has `j - 1 = 2` nodes, so `dp[2] = 2`.
+  - Right subtree has `i - j = 3 - 3 = 0` nodes, so `dp[0] = 1`.
+  - Total BSTs with `3` as root: `dp[2] * dp[0] = 2 * 1 = 2`.
+
+3. **Sum the Results**:
+   - The total number of unique BSTs with `3` nodes is:
+    $$
+     dp[3] = dp[0] \times dp[2] + dp[1] \times dp[1] + dp[2] \times dp[0] = 2 + 1 + 2 = 5
+    $$
+   - Thus, `dp[3] = 5`.
+
+This gives us the number of unique BSTs for `n = 3` and illustrates why `j-1` represents the left subtree options and `i-j` represents the right subtree options.
