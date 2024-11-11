@@ -4240,3 +4240,496 @@ To see how this works in practice, let’s calculate `dp[3]`, the number of uniq
    - Thus, `dp[3] = 5`.
 
 This gives us the number of unique BSTs for `n = 3` and illustrates why `j-1` represents the left subtree options and `i-j` represents the right subtree options.
+
+
+## 0-1 Knapsack Problem
+
+1. **Problem Setup**
+
+    The knapsack problem aims to maximize the total value of items included in a knapsack with a fixed weight capacity. Each item has:
+    - **Weight**: How much space it takes in the knapsack.
+    - **Value**: The benefit or worth of including it.
+    The goal is to pick a combination of items that maximizes total value without exceeding the knapsack's capacity.
+
+2. **Dynamic Programming Table (DP Table)**
+    - The code constructs a 2D DP table `dp`, where `dp[i][j]` represents the maximum value achievable with the first `i` items and a knapsack of capacity `j`.
+    - This table helps store intermediate results, avoiding redundant calculations 
+
+3. **Initialization**
+    - The table is initialized such that for all rows, `dp[row][0] = 0`, meaning if the knapsack has zero capacity, the maximum value is `0`.
+    - For the first item (first row), if the knapsack's capacity is at least the weight of the first item (`items[0][0]`), then `dp[0][col] = items[0][1]`. This represents the value of the first item, as it's the only item available at that capacity.
+
+4. **Filling the DP Table**
+    - For each subsequent item (`i` from `1` to `len(items) - 1`) and for each possible knapsack capacity (`j` from `1` to `capacity`):
+        - **Excluding the item**: If the current item is excluded, then `dp[i][j] = dp[i-1][j]`, representing the best achievable value with previous items and the current capacity.
+        - **Including the item**: If the current item is included (only if `j >= items[i][0]`), then the achievable value is `dp[i-1][j-items[i][0]] + items[i][1]`. Here:
+        - `dp[i-1][j-items[i][0]]` is the best achievable value using previous items with the remaining capacity after including the current item.
+        - `items[i][1]` is the value of the current item itself.
+    
+    $$
+        dp[i][j] = \begin{cases} 
+        0 & \text{if } i = 0 \text{ or } j = 0 \\
+        dp[i-1][j] & \text{if } w_i > j \\
+        \max(dp[i-1][j], dp[i-1][j - w_i] + v_i) & \text{if } w_i \leq j 
+        \end{cases}
+    $$
+
+```python
+from typing import List, Tuple
+
+def knapsack(capacity: int, items: List[Tuple[int, int]]) -> int:
+    # Initialize a 2D DP table with 0s, where dp[i][j] represents the maximum value achievable
+    # with the first i items and knapsack capacity j.
+    dp = [[0] * (capacity + 1) for _ in range(len(items))]
+
+    # Set the base case for each item where knapsack capacity is 0 (no value can be carried).
+    for row in range(len(items)):
+        dp[row][0] = 0
+
+    # Initialize the first row: If the capacity allows, we take the first item.
+    for col in range(capacity + 1):
+        if col >= items[0][0]:  # Check if the capacity can hold the first item's weight
+            dp[0][col] = items[0][1]  # Set the value as the item's value
+
+    # Fill the DP table for each item and capacity
+    for i in range(1, len(items)):
+        for j in range(1, capacity + 1):
+            # If the current item's weight is less than or equal to the current capacity j
+            if j >= items[i][0]:
+                # Choose the maximum value between excluding and including the current item
+                dp[i][j] = max(dp[i-1][j], dp[i-1][j - items[i][0]] + items[i][1])
+            else:
+                # Otherwise, we can't include the current item, so we take the previous value
+                dp[i][j] = dp[i-1][j]
+
+    # Print the DP table for debugging purposes to see the values at each step
+    print(dp)
+    
+    # The solution is in the bottom-right cell, representing the maximum value for the full capacity
+    return dp[-1][-1]
+
+```
+
+**Optimization**:
+
+1. **1D DP Array Initialization**:
+   - Instead of a 2D array, a 1D array `dp` is used where `dp[j]` holds the maximum value for a knapsack capacity `j`.
+   - This reduces the space complexity from $( O(\text{n} \times \text{capacity}) )$ to $ ( O(\text{capacity}) )$.
+
+```python
+def knapsack_1D(capacity: int, items: List[Tuple[int, int]]) -> int:
+    dp = [0] * (capacity+1)
+
+    for capacity_index in range(capacity+1):
+        if capacity_index >= items[0][0]:
+            dp[capacity_index] = items[0][1]
+
+    for item_index in range(1, len(items)):
+        for capacity_index in range(1, capacity+1):
+            if capacity_index >= items[item_index][0]:
+                dp[capacity_index] = max(dp[capacity_index], dp[capacity_index-items[item_index][0]] + items[item_index][1])
+        print(dp)
+
+    return dp[-1]
+
+```
+
+## Partition Equal Subset Sum
+
+```python
+class Solution:
+    def canPartition(self, nums: List[int]) -> bool:
+        target = sum(nums)
+        
+        # If the total sum is odd, it's impossible to split it into two equal subsets
+        if target % 2 == 1:
+            return False
+        
+        # Calculate the target sum for one subset (half of total sum)
+        target //= 2
+        
+        # Initialize a 1D DP array where dp[j] represents the maximum achievable subset sum with sum j
+        dp = [0] * (target + 1)
+        
+        # Process each number in the array
+        for num in nums:
+            # Update the DP array in reverse order to prevent using the same item multiple times
+            for j in range(target, num - 1, -1):
+                # Update dp[j] to be the maximum of:
+                # - dp[j] (not including num)
+                # - dp[j - num] + num (including num to achieve a new sum j)
+                dp[j] = max(dp[j], dp[j - num] + num)
+
+        # Check if the target sum is achievable; if dp[target] == target, we found an equal partition
+        return dp[target] == target
+        
+```
+
+## Last Stone Weight II
+
+```python
+class Solution:
+    def lastStoneWeightII(self, stones: List[int]) -> int:
+        # If there's only one stone, return its weight since there's nothing to balance it against.
+        if len(stones) == 1:
+            return stones[0]
+        
+        # Calculate the target weight, which is half the total sum of the stones.
+        # We aim to find the maximum possible subset sum close to this target.
+        target = sum(stones) // 2
+        
+        # Initialize the dp array where dp[j] represents the closest subset sum we can achieve to 'j'.
+        dp = [0] * (target + 1)
+
+        # Iterate through each stone in the stones list
+        for i in range(len(stones)):
+            # Traverse backwards in the dp array to avoid reusing the same stone in this iteration
+            for j in range(target, stones[i] - 1, -1):
+                # Update dp[j] by choosing the maximum of:
+                # - keeping the current value (not including this stone in the subset)
+                # - adding the current stone to the subset (dp[j - stones[i]] + stones[i])
+                dp[j] = max(dp[j], dp[j - stones[i]] + stones[i])
+
+        # After filling the dp array, dp[target] holds the best achievable subset sum closest to the target
+        # The result is the minimum difference between two groups, calculated as:
+        # (total sum of stones) - 2 * (best achievable subset sum close to half)
+        return sum(stones) - dp[target] * 2
+
+```
+
+## Target Sum
+
+**Time Limit Exceeded**: Using Backtracing
+
+```python
+class Solution:
+    def findTargetSumWays(self, nums: List[int], target: int) -> int:
+        # Initialize the result counter
+        result = 0
+        
+        # Define the backtracking helper function
+        def backtracking(index: int, currentSum: int):
+            nonlocal result
+            # Base case: all elements processed
+            if index == len(nums):
+                # Check if currentSum matches target
+                if currentSum == target:
+                    result += 1  # Found a valid way
+                return
+            
+            # Recursive case: add the current element
+            backtracking(index + 1, currentSum + nums[index])
+            # Recursive case: subtract the current element
+            backtracking(index + 1, currentSum - nums[index])
+        
+        # Start the backtracking process
+        backtracking(0, 0)
+        return result
+    
+```
+
+### Problem Transformation
+
+The problem of assigning `+` and `-` signs to elements in `nums` to achieve a `target` sum can be transformed into a **subset sum problem**. Here’s how:
+
+1. Let’s define two subsets:
+   - `P`: The subset of elements with a `+` sign.
+   - `N`: The subset of elements with a `-` sign.
+   
+2. Based on these subsets, we have:
+   - \( P - N = target)
+   - \( P + N = sum(nums))
+   
+3. Solving for `P`, we get:
+   - \( P = (sum(nums) + target ) / 2 \)
+   
+Thus, we need to find the number of ways to achieve a subset sum equal to \( subset\_sum = (sum(nums) + target ) / 2 \).
+
+### Edge Cases
+
+- **Odd Sum Check**: If `sum(nums) + target` is odd, then `subset_sum` is not an integer, and it’s impossible to partition `nums` to meet the target. We return `0`.
+- **Target Out of Reach**: If \( `abs(target) > sum(nums)` \), the target is unachievable, so we return `0`.
+
+### Dynamic Programming Array Setup
+
+1. **Define `dp` Array**: 
+   - `dp[j]` will store the number of ways to achieve the sum `j` using elements from `nums`.
+
+2. **Initialize `dp[0]`**:
+   - Set `dp[0] = 1` because there is one way to achieve a sum of `0` (by selecting no elements).
+
+### DP Transition (Subset Sum Calculation)
+
+- For each element in `nums`, update the `dp` array in reverse (to avoid reusing elements):
+  - For each `j` from `subset_sum` down to `num`:
+    - `dp[j] += dp[j - num]`
+  - This step accumulates the number of ways to achieve each possible sum up to `subset_sum`.
+
+### Result
+
+- After processing all elements, `dp[subset_sum]` will hold the number of ways to reach `subset_sum`, which corresponds to the number of ways to assign signs to reach `target`.
+
+```python
+class Solution:
+    def findTargetSumWays(self, nums: List[int], target: int) -> int:
+        # Calculate the sum of all numbers
+        total_sum = sum(nums)
+        
+        # Check if it’s possible to achieve the target
+        # If total_sum + target is odd or if target is too large to be achieved, return 0
+        if (total_sum + target) % 2 == 1 or total_sum < abs(target):
+            return 0
+        
+        # Calculate the subset sum we need to achieve
+        subset_sum = (total_sum + target) // 2
+        
+        # Initialize dp array, where dp[j] will store the number of ways to achieve sum j
+        dp = [0] * (subset_sum + 1)
+        dp[0] = 1  # There's one way to make zero sum: choose no elements
+        
+        # Fill the dp array by iterating through each number in nums
+        for num in nums:
+            # Traverse backwards to avoid reusing the same number in the same iteration
+            for j in range(subset_sum, num - 1, -1):
+                dp[j] += dp[j - num]
+        
+        # The answer is the number of ways to achieve the subset_sum
+        return dp[subset_sum]
+          
+```
+
+## Ones and Zeroes
+
+Given a list of binary strings (`strs`), each string is composed of `0`s and `1`s. The goal is to determine the maximum number of strings that can be selected from `strs` such that the total count of `0`s is at most `m` and the total count of `1`s is at most `n`.
+
+This problem can be framed as a **Knapsack problem**, where each string represents an item with:
+- A "weight" in terms of the count of `0`s and `1`s.
+- A "value" of `1` (since choosing the string increases the count by one).
+
+
+
+1. **Define the DP Array**:
+   - Let `dp[i][j]` represent the maximum number of strings that can be formed using at most `i` zeros and `j` ones.
+   - Initialize a DP array with dimensions `(m + 1) x (n + 1)` where each cell starts with `0`:
+     ```python
+     dp = [[0] * (n + 1) for _ in range(m + 1)]
+     ```
+
+2. **Process Each String in `strs`**:
+   - For each string in `strs`, count the number of `0`s and `1`s:
+     ```python
+     zeros = str.count('0')
+     ones = str.count('1')
+     ```
+   - These counts (`zeros` and `ones`) represent the "cost" of choosing this string in terms of the `0` and `1` limits.
+
+3. **Update the DP Array in Reverse**:
+   - Use reverse iteration for each `i` (from `m` down to `zeros`) and `j` (from `n` down to `ones`) to avoid reusing the same string in the same iteration:
+     ```python
+     for i in range(m, zeros - 1, -1):
+         for j in range(n, ones - 1, -1):
+             dp[i][j] = max(dp[i][j], dp[i - zeros][j - ones] + 1)
+     ```
+   - **Update Rule**: For each cell `dp[i][j]`, update it to the maximum of:
+     - `dp[i][j]`: The current value, representing not picking this string.
+     - `dp[i - zeros][j - ones] + 1`: The value after picking this string, which adds `1` to the previous state.
+
+4. **Final Result**:
+   - After processing all strings, the value at `dp[m][n]` will hold the maximum number of strings that can be formed using at most `m` zeros and `n` ones:
+     ```python
+     return dp[m][n]
+     ```
+
+```python
+class Solution:
+    def findMaxForm(self, strs: List[str], m: int, n: int) -> int:
+        dp = [[0] * (n+1) for _ in range(m+1)]
+        
+        for str in strs:
+            zeros = str.count('0')
+            ones = str.count('1')
+            for i in range(m, zeros-1, -1):
+                for j in range(n, ones-1, -1):
+                    dp[i][j] = max(dp[i][j], dp[i-zeros][j-ones] + 1)
+
+
+        return dp[m][n]
+
+```
+
+## Coin Change II
+
+**Solution**:
+
+1. **Define the DP Array**:
+   - Let `dp[j]` represent the number of ways to achieve the amount `j` using the available coins.
+   - Initialize `dp` with a size of `amount + 1`, where each entry is initially `0`, except for `dp[0]`, which is set to `1` (there is one way to make amount `0` by choosing no coins).
+
+2. **Iterate Over Each Coin**:
+   - For each `coin` in `coins`, update the `dp` array to reflect the new ways to achieve each amount by including that coin.
+
+3. **Update the DP Array**:
+   - For each amount `j` from `coin` up to `amount`, add the number of ways to achieve `j - coin` to `dp[j]`. This is because if we can achieve the amount `j - coin`, we can reach `j` by adding one more `coin`.
+   - The update rule:
+     ```python
+     dp[j] += dp[j - coin]
+     ```
+   - This formula accumulates the ways to reach each amount `j` by considering the current coin's contribution.
+
+4. **Final Result**:
+   - After processing all coins, the value `dp[amount]` will contain the total number of ways to achieve the target `amount` using the available coins.
+
+```python
+lass Solution:
+    def change(self, amount: int, coins: List[int]) -> int:
+        # Initialize a DP array where dp[j] represents the number of ways to achieve amount j
+        dp = [0] * (amount + 1)
+        dp[0] = 1  # There is one way to make amount 0: use no coins
+        
+        # Iterate over each coin in coins
+        for coin in coins:
+            # Update the dp array from the value of the coin to the target amount
+            for j in range(coin, amount + 1):
+                # Add the ways to achieve amount j - coin to dp[j]
+                dp[j] += dp[j - coin]
+        
+        # The final answer is the number of ways to make up the 'amount'
+        return dp[amount]
+
+```
+
+## Combination Sum IV
+
+**Solution**:
+
+1. **Define the DP Array**:
+   - Let `dp[j]` represent the number of ways to achieve the sum `j` using the elements in `nums`.
+   - Initialize `dp` with size `target + 1`, where each entry starts as `0`, except for `dp[0]`, which is set to `1` (there is one way to make the sum `0` by choosing no elements).
+
+2. **Iterate Over Possible Sums**:
+   - Loop through each possible sum `j` from `1` to `target`.
+   - For each `j`, consider each element `num` in `nums` to determine if `num` can contribute to reaching `j`.
+
+3. **Update the DP Array**:
+   - For each sum `j` and each `num` in `nums`:
+     - If `num` can be part of a combination to reach `j` (i.e., if `j >= num`):
+       - Add the number of ways to achieve `j - num` to `dp[j]`.
+       - This is because if we can reach `j - num`, then adding `num` would allow us to reach `j`.
+     - The update rule:
+       ```python
+       dp[j] += dp[j - num]
+       ```
+   - This accumulates the ways to reach each possible sum by building upon smaller sums.
+
+4. **Final Result**:
+   - After processing all sums up to `target`, the value `dp[target]` will contain the total number of ways to achieve the target sum using the given numbers in `nums`.
+
+```python
+class Solution:
+    def change(self, amount: int, coins: List[int]) -> int:
+        # Initialize a DP array where dp[j] represents the number of ways to achieve amount j
+        dp = [0] * (amount + 1)
+        dp[0] = 1  # There is one way to make amount 0: use no coins
+        
+        # Iterate over each coin in coins
+        for coin in coins:
+            # Update the dp array from the value of the coin to the target amount
+            for j in range(coin, amount + 1):
+                # Add the ways to achieve amount j - coin to dp[j]
+                dp[j] += dp[j - coin]
+        
+        # The final answer is the number of ways to make up the 'amount'
+        return dp[amount]
+    
+```
+
+## Coin Change
+
+**Solution**:
+
+1. **Define the DP Array**:
+   - `dp[j]` will represent the minimum number of coins required to achieve amount `j`.
+   - Initialize `dp` as `[float('inf')] * (amount + 1)` to represent initially unreachable amounts.
+   - Set `dp[0] = 0` as the base case, since zero coins are needed to achieve amount `0`.
+
+2. **Iterate Over Each Coin**:
+   - For each coin in `coins`, update the `dp` array to reflect the minimum coins needed for amounts from `coin` up to `amount`.
+
+3. **Update the DP Array**:
+   - For each amount `j` (from `coin` to `amount`):
+     - Update `dp[j]` to be the minimum of its current value or `dp[j - coin] + 1`.
+     - This update rule means that if we can make the amount `j - coin`, then we can make `j` by adding one more coin of this denomination.
+
+4. **Final Result**:
+   - After processing all coins, check if `dp[amount]` is still `float('inf')`:
+     - If it is, return `-1`, as it is impossible to form the amount with the given coins.
+     - Otherwise, `dp[amount]` contains the minimum number of coins required to make up `amount`.
+
+
+```python
+class Solution:
+    def coinChange(self, coins: List[int], amount: int) -> int:
+        # Initialize the DP array with infinity, representing an initially unreachable amount
+        dp = [float('inf')] * (amount + 1)
+        
+        # Base case: 0 coins are needed to make amount 0
+        dp[0] = 0
+        
+        # Loop through each coin in the coins list
+        for coin in coins:
+            # For each coin, update the dp array for amounts from `coin` to `amount`
+            for j in range(coin, amount + 1):
+                # Update dp[j] to be the minimum of its current value or
+                # the value of dp[j - coin] + 1 (adding this coin to the minimum solution for `j - coin`)
+                dp[j] = min(dp[j], dp[j - coin] + 1)
+        
+        # If dp[amount] is still infinity, it means the amount cannot be made with the given coins
+        if dp[amount] == float('inf'):
+            return -1
+        
+        # Otherwise, return the minimum number of coins needed for `amount`
+        return dp[amount]
+    
+```
+
+## Perfect Squares
+
+**Solution**:
+1. **Define the DP Array**:
+   - `dp[j]` will store the minimum number of perfect squares required to achieve the sum `j`.
+   - Initialize `dp` as `[float('inf')] * (n + 1)`, with `dp[0] = 0` (no squares are needed to sum to `0`).
+
+2. **Iterate Over Each Perfect Square**:
+   - For each integer `i` from `1` up to `sqrt(n)`, calculate `i**2` as a perfect square.
+   - This square represents a possible component for achieving sums from `i**2` up to `n`.
+
+3. **Update the DP Array for Each Sum**:
+   - For each target sum `j` (from `i**2` to `n`):
+     - Update `dp[j]` to be the minimum of its current value or `dp[j - i**2] + 1`.
+     - This formula means that if we can achieve `j - i**2`, then adding one instance of `i**2` will let us achieve `j` with one additional square.
+
+4. **Final Result**:
+   - After processing all perfect squares, `dp[n]` will contain the minimum number of squares required to sum to `n`.
+
+```python
+class Solution:
+    def numSquares(self, n: int) -> int:
+        # Initialize the DP array with infinity, representing an initially unreachable sum
+        dp = [float('inf')] * (n + 1)
+        
+        # Base case: 0 perfect squares are needed to achieve sum 0
+        dp[0] = 0
+        
+        # Iterate over each integer from 1 up to n
+        for i in range(1, n + 1):
+            # Calculate the square of i and update the dp array for amounts from i**2 up to n
+            square = i ** 2
+            for j in range(square, n + 1):
+                # Update dp[j] to be the minimum of its current value or dp[j - square] + 1
+                # dp[j - square] + 1 represents adding one perfect square (i^2) to the solution for (j - square)
+                dp[j] = min(dp[j], dp[j - square] + 1)
+        
+        # The final answer is the minimum number of perfect squares needed for sum n
+        return dp[n]
+    
+```
