@@ -4733,3 +4733,345 @@ class Solution:
         return dp[n]
     
 ```
+
+## Word Break
+
+**Solution**:
+1. **Define the DP Array**:
+   - Let `dp[j]` represent whether the substring `s[:j]` can be segmented using words from `wordDict`.
+   - Initialize `dp` with `False` values, except for `dp[0] = True` as a base case, since an empty string can always be segmented.
+
+2. **Outer Loop: Iterate Over Each Position in `s`**:
+   - For each position `j` from `1` to `len(s)`, check if the substring `s[:j]` can be formed by appending any word from `wordDict` to a previous valid substring.
+
+3. **Inner Loop: Check Each Word in `wordDict`**:
+   - For each word, check if:
+     - The word can fit in the current substring length (`j >= len(word)`).
+     - The substring `s[j - len(word):j]` matches the word.
+     - If both conditions hold and `dp[j - len(word)]` is `True`, set `dp[j] = True` and break out of the loop, as a valid segmentation up to `j` has been found.
+
+4. **Return the Result**:
+   - After processing all positions, `dp[len(s)]` will indicate if the entire string `s` can be segmented using the words in `wordDict`.
+
+```python
+class Solution:
+    def wordBreak(self, s: str, wordDict: List[str]) -> bool:
+        # Initialize the DP array where dp[j] is True if s[:j] can be segmented using words in wordDict
+        dp = [False] * (len(s) + 1)
+        dp[0] = True  # Base case: empty string can be segmented
+        
+        # Loop through each position in the string
+        for j in range(1, len(s) + 1):
+            # Check each word in wordDict to see if it can end at position j
+            for word in wordDict:
+                # Ensure the word length is not greater than j
+                if j >= len(word):
+                    # If dp[j - len(word)] is True and the substring matches the word, set dp[j] to True
+                    if dp[j - len(word)] and s[j - len(word):j] == word:
+                        dp[j] = True
+                        break  # No need to check further if dp[j] is True
+        
+        # Return whether the entire string can be segmented
+        return dp[-1]
+        
+```
+
+## House Robber
+
+**Solution**:
+1. **Edge Case Handling**:
+   - If there is only one house (`len(nums) == 1`), rob that house.
+   - If there are two houses (`len(nums) == 2`), rob the house with the most money.
+
+2. **Define the DP Array**:
+   - Let `dp[i]` represent the maximum amount of money that can be robbed from the first `i+1` houses.
+   - Initialize `dp[0] = nums[0]` since the only option is to rob the first house.
+   - Initialize `dp[1] = max(nums[0], nums[1])` to rob the house with the larger amount from the first two houses.
+
+3. **Fill the DP Array**:
+   - For each house `i` from `2` to `len(nums) - 1`, calculate:
+     - `dp[i] = max(dp[i - 1], dp[i - 2] + nums[i])`
+     - This formula means that `dp[i]` takes the maximum of either:
+       - Not robbing house `i` (`dp[i - 1]`).
+       - Robbing house `i`, which adds `nums[i]` to the best solution up to `i-2` (`dp[i - 2]`).
+
+4. **Return the Result**:
+   - The value `dp[-1]` (or `dp[len(nums) - 1]`) contains the maximum money that can be robbed without triggering an alarm.
+
+
+```python
+class Solution:
+    def rob(self, nums: List[int]) -> int:
+        if len(nums) == 1:
+            return nums[0]  # Only one house, so rob it
+        if len(nums) == 2:
+            return max(nums[0], nums[1])  # Two houses, pick the one with more money
+
+        # Initialize DP array
+        dp = [0] * len(nums)
+        dp[0] = nums[0]  # Only one house, rob it
+        dp[1] = max(nums[0], nums[1])  # Rob the house with more money
+
+        # Fill the dp array for each house from the third onward
+        for i in range(2, len(nums)):
+            # Choose the max between not robbing current house or robbing it
+            dp[i] = max(dp[i - 1], dp[i - 2] + nums[i])
+
+        # The answer is the max amount that can be robbed from all houses
+        return dp[-1]
+    
+```
+
+## House Robber II
+
+**Solution**:
+
+1. **Two Scenarios**:
+   - Since houses are in a circle, divide the problem into two scenarios:
+     - **Exclude the last house**: Solve for houses from the first to the second-to-last.
+     - **Exclude the first house**: Solve for houses from the second to the last.
+
+## House Robber III
+
+**Solution**:
+
+In "House Robber III", houses are represented by nodes in a binary tree. Adjacent nodes (directly connected) cannot both be robbed, so the objective is to maximize the sum of non-adjacent nodes' values.
+
+This problem can be solved using a **postorder traversal** of the tree and dynamic programming principles, where each node has two states:
+   - **Rob this node**: Add its value and proceed without robbing its children.
+   - **Do not rob this node**: Take the maximum possible money from each child node, whether they are robbed or not.
+
+1. **Define the Traversal Function**:
+   - Create a helper function `traversal` that returns two values for each node:
+     - `dp[0]`: Maximum money if the node is **not robbed**.
+     - `dp[1]`: Maximum money if the node **is robbed**.
+
+2. **Recursive Calculations**:
+   - For each node, use the results from the left and right children:
+     - **`dp[0]` (not robbing this node)**: Sum of the maximum values from robbing or not robbing each child.
+     - **`dp[1]` (robbing this node)**: Current node’s value plus the money from not robbing each child.
+
+3. **Base Case**:
+   - If a node is `None`, return `[0, 0]`, meaning there is no money to rob.
+
+4. **Final Result**:
+   - After the traversal, return `max(dp[0], dp[1])` for the root node, representing the maximum money that can be robbed with or without robbing the root.
+
+```python
+class Solution:
+    def rob(self, root: Optional[TreeNode]) -> int:
+        # Define a helper function for traversal that returns an array with two values:
+        # - dp[0]: Maximum money if the current node is NOT robbed
+        # - dp[1]: Maximum money if the current node IS robbed
+        def traversal(cur: Optional[TreeNode]) -> List[int]:
+            if not cur:
+                # Base case: if the node is None, return [0, 0]
+                return [0, 0]
+            
+            # Recursively solve for the left and right subtrees
+            leftDp = traversal(cur.left)
+            rightDp = traversal(cur.right)
+
+            # dp[0]: If we do not rob this node, take the max of robbing or not robbing the children
+            # dp[1]: If we rob this node, we cannot rob its children, so add its value to leftDp[0] and rightDp[0]
+            return [
+                max(leftDp[0], leftDp[1]) + max(rightDp[0], rightDp[1]),  # Max money without robbing this node
+                cur.val + leftDp[0] + rightDp[0]  # Max money with robbing this node
+            ]
+        
+        # Calculate the results for the root node
+        dp = traversal(root)
+        # Return the maximum money by choosing either to rob or not to rob the root node
+        return max(dp[0], dp[1])
+    
+```
+
+## Best Time to Buy and Sell Stock
+
+**Solution**:
+
+1. **Define the DP Array**:
+   - `dp[i][0]`: Maximum profit on day `i` with **no stock held** at the end of the day.
+   - `dp[i][1]`: Maximum profit on day `i` with **one stock held** at the end of the day.
+   - Initialize `dp[0][0] = 0` and `dp[0][1] = -prices[0]`.
+
+2. **Populate the DP Array**:
+   - For each day `i`, update:
+     - `dp[i][0]`: Maximum profit if **no stock is held** at the end of day `i`.
+       - Choices: keep previous max without stock or sell stock today if it was bought on an earlier day.
+       - Formula: `dp[i][0] = max(dp[i-1][0], dp[i-1][1] + prices[i])`
+     - `dp[i][1]`: Maximum profit if **one stock is held** at the end of day `i`.
+       - Choices: keep previous max with stock or buy stock today (resetting to -prices[i] since only one transaction is allowed).
+       - Formula: `dp[i][1] = max(dp[i-1][1], -prices[i])`
+
+3. **Final Result**:
+   - The maximum profit at the end of the last day, holding no stock, is `dp[-1][0]`.
+
+```python
+class Solution:
+    def maxProfit(self, prices: List[int]) -> int:
+        # Edge case: if there is only one day, no transactions can be made
+        if len(prices) == 1:
+            return 0
+        
+        # Initialize the DP array where dp[i][0] is the max profit on day i with no stock
+        # and dp[i][1] is the max profit on day i with one stock (bought at some point)
+        dp = [[0, 0] for _ in range(len(prices))]
+        
+        # Base cases
+        dp[0][0] = 0           # If we do not buy on the first day, profit is 0
+        dp[0][1] = -prices[0]  # If we buy on the first day, profit is -prices[0]
+        
+        # Fill the DP array for each day
+        for i in range(1, len(prices)):
+            # dp[i][0]: max profit if we do not hold stock on day i
+            # Choices: not selling (keep dp[i-1][0]) or sell stock bought on an earlier day (dp[i-1][1] + prices[i])
+            dp[i][0] = max(dp[i-1][0], dp[i-1][1] + prices[i])
+            
+            # dp[i][1]: max profit if we hold stock on day i
+            # Choices: keep holding (dp[i-1][1]) or buy stock today (since only one transaction is allowed, set to -prices[i])
+            dp[i][1] = max(dp[i-1][1], -prices[i])
+
+        # The maximum profit achievable is without holding stock on the last day (dp[-1][0])
+        return dp[-1][0]
+
+```
+
+## Best Time to Buy and Sell Stock II
+
+**Solution**:
+
+1. **Define the DP Array**:
+   - `dp[i][0]`: Maximum profit up to day `i` with no stock held.
+   - `dp[i][1]`: Maximum profit up to day `i` with stock held.
+   - Initialize `dp[0][0] = 0` (no profit if no transactions on the first day).
+   - Initialize `dp[0][1] = -prices[0]` (negative profit if stock bought on the first day).
+
+2. **Fill the DP Array**:
+   - For each day `i`, calculate:
+     - **`dp[i][0]`**: Maximum profit if no stock is held on day `i`.
+       - Choices:
+         - Do nothing: `dp[i-1][0]` (same profit as the previous day).
+         - Sell stock: `dp[i-1][1] + prices[i]` (profit from selling stock bought on a previous day).
+       - Formula: `dp[i][0] = max(dp[i-1][0], dp[i-1][1] + prices[i])`
+     - **`dp[i][1]`**: Maximum profit if stock is held on day `i`.
+       - Choices:
+         - Do nothing: `dp[i-1][1]` (same as previous day's profit with stock).
+         - Buy stock: `dp[i-1][0] - prices[i]` (profit from buying stock with previous day’s `no stock` profit).
+       - Formula: `dp[i][1] = max(dp[i-1][1], dp[i-1][0] - prices[i])`
+
+3. **Final Result**:
+   - The maximum profit at the end of the last day with no stock held is `dp[-1][0]`.
+
+```python
+class Solution:
+    def maxProfit(self, prices: List[int]) -> int:
+        # Edge case: if there's only one day, no transactions can be made
+        if len(prices) == 1:
+            return 0
+        
+        # Initialize the DP array:
+        # dp[i][0]: max profit on day i with no stock held
+        # dp[i][1]: max profit on day i with stock held
+        dp = [[0, 0] for _ in range(len(prices))]
+        
+        # Base cases
+        dp[0][0] = 0               # No stock on the first day means no profit
+        dp[0][1] = -prices[0]      # Buying stock on the first day costs prices[0]
+        
+        # Fill in the DP array for each subsequent day
+        for i in range(1, len(prices)):
+            # dp[i][0]: max profit if no stock is held on day i
+            # Choices: do nothing (dp[i-1][0]) or sell stock bought on an earlier day (dp[i-1][1] + prices[i])
+            dp[i][0] = max(dp[i-1][0], dp[i-1][1] + prices[i])
+            
+            # dp[i][1]: max profit if stock is held on day i
+            # Choices: keep holding stock (dp[i-1][1]) or buy stock today (dp[i-1][0] - prices[i])
+            dp[i][1] = max(dp[i-1][1], dp[i-1][0] - prices[i])
+
+        # Return the max profit at the end of the last day with no stock held
+        return dp[-1][0]
+        
+```
+
+## Best Time to Buy and Sell Stock III
+
+**Solution**:
+
+1. **Define the DP Array**:
+   - Initialize `dp[i][0]` to track the max profit with no transactions.
+   - Initialize `dp[i][1]` to track the max profit with the first buy.
+   - Initialize `dp[i][2]` to track the max profit with the first transaction completed.
+   - Initialize `dp[i][3]` to track the max profit with the second buy done.
+
+2. **Base Case Initialization**:
+   - `dp[0][0] = 0`: No profit without any transaction.
+   - `dp[0][1] = -prices[0]`: Cost of buying stock on the first day for the first transaction.
+   - `dp[0][2] = 0`: No profit with no completed transactions on the first day.
+   - `dp[0][3] = -prices[0]`: Cost of buying stock on the first day for the second transaction.
+
+3. **Iterate Through Days**:
+   - For each day `i`, update each state:
+     - **`dp[i][0]`**: Max profit with no transactions.
+     - **`dp[i][1]`**: Max profit with the first buy.
+     - **`dp[i][2]`**: Max profit with the second transaction completed.
+     - **`dp[i][3]`**: Max profit with the second buy.
+
+4. **Final Result**:
+   - The maximum profit achievable with up to two transactions is `dp[-1][2]`.
+
+```python
+class Solution:
+    def maxProfit(self, prices: List[int]) -> int:
+        # Edge case: If only one price is given, return 0 as no transactions can be made
+        if len(prices) == 1:
+            return 0
+        
+        # Initialize DP array:
+        # dp[i][0]: max profit with first no holding stock up to day i
+        # dp[i][1]: max profit with first holding stock up to day i
+        # dp[i][2]: max profit with second no holding stock to day i
+        # dp[i][3]: max profit with second holding stock up to day i
+        dp = [[0, 0, 0, 0] for _ in range(len(prices))]
+        dp[0][0], dp[0][1], dp[0][2], dp[0][3] = 0, -prices[0], 0, -prices[0]
+
+        # Populate the DP array for each day
+        for i in range(1, len(prices)):
+            dp[i][0] = max(dp[i-1][0], dp[i-1][1] + prices[i])
+            dp[i][1] = max(dp[i-1][1], -prices[i])
+            dp[i][2] = max(dp[i-1][2], dp[i-1][3] + prices[i])
+            dp[i][3] = max(dp[i-1][3], dp[i-1][0] - prices[i])
+
+        # Return the maximum profit after completing up to two transactions (dp[-1][2])
+        return dp[-1][2]
+    
+```
+
+## Best Time to Buy and Sell Stock IV
+
+```python
+class Solution:
+    def maxProfit(self, k: int, prices: List[int]) -> int:
+        if len(prices) == 1:
+            return 0
+        
+        # Initialize DP array with 2*k states for each day, to handle multiple transactions
+        # dp[i][j]: max profit on day i with a specific transaction state j
+        dp = [[0] * (2 * k)  for _ in range(len(prices))]
+        for i in range(2 * k):
+            if i % 2 == 0:
+                dp[0][i] = 0
+            else:
+                dp[0][i] = -prices[0]
+
+        for i in range(1, len(prices)):
+            dp[i][0] = max(dp[i-1][0], dp[i-1][1] + prices[i])
+            dp[i][1] = max(dp[i-1][1], -prices[i])
+
+            for j in range(2, 2 * k, 2):
+                dp[i][j] = max(dp[i-1][j], dp[i-1][j+1] + prices[i])
+                dp[i][j+1] = max(dp[i-1][j+1], dp[i-1][j+1-3] - prices[i])
+
+        return dp[-1][-2]
+
+```
