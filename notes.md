@@ -5075,3 +5075,3663 @@ class Solution:
         return dp[-1][-2]
 
 ```
+
+## Best Time to Buy and Sell Stock with Cooldown
+
+**Solution**:
+
+
+```python
+class Solution:
+    def maxProfit(self, prices: List[int]) -> int:
+        # Edge case: if there is only one price, no transactions can be made
+        if len(prices) == 1:
+            return 0
+        
+        # Initialize DP array where:
+        # dp[i][0] represents the max profit on day i without holding any stock.
+        # dp[i][1] represents the max profit on day i while holding a stock.
+        dp = [[0, 0] for _ in range(len(prices))]
+        
+        # Base cases
+        dp[0][0] = 0            # No stock held on day 0, profit is 0
+        dp[0][1] = -prices[0]    # Stock bought on day 0, negative profit by price of the stock
+        dp[1][0] = max(dp[0][0], dp[0][1] + prices[1])  # Sell the stock on day 1 or do nothing
+        dp[1][1] = max(dp[0][1], -prices[1])            # Buy the stock on day 1 or hold from day 0
+        
+        # Populate the DP array for each day from day 2 onwards
+        for i in range(2, len(prices)):
+            # dp[i][0]: Max profit on day i without holding any stock
+            # Choices: do nothing (dp[i-1][0]) or sell stock held from previous day (dp[i-1][1] + prices[i])
+            dp[i][0] = max(dp[i-1][0], dp[i-1][1] + prices[i])
+            
+            # dp[i][1]: Max profit on day i while holding a stock
+            # Choices: keep holding (dp[i-1][1]) or buy stock today (dp[i-2][0] - prices[i] due to cooldown)
+            dp[i][1] = max(dp[i-1][1], dp[i-2][0] - prices[i])
+
+        # Return the max profit on the last day without holding any stock
+        return dp[-1][0]
+    
+```
+
+## Best Time to Buy and Sell Stock with Transaction Fee
+
+```python
+class Solution:
+    def maxProfit(self, prices: List[int], fee: int) -> int:
+        # Edge case: if only one price is given, no transactions can be made
+        if len(prices) == 1:
+            return 0
+        
+        # Initialize DP array where:
+        # dp[i][0] represents the max profit on day i without holding any stock.
+        # dp[i][1] represents the max profit on day i while holding a stock.
+        dp = [[0, 0] for _ in range(len(prices))]
+        
+        # Base cases
+        dp[0][0] = 0            # No stock held on day 0, profit is 0
+        dp[0][1] = -prices[0]    # Stock bought on day 0, initial negative profit
+        
+        # Populate DP array for each subsequent day
+        for i in range(1, len(prices)):
+            # dp[i][0]: Max profit on day i without holding any stock
+            # Choices: do nothing (dp[i-1][0]) or sell stock (dp[i-1][1] + prices[i] - fee)
+            dp[i][0] = max(dp[i-1][0], dp[i-1][1] + prices[i] - fee)
+            
+            # dp[i][1]: Max profit on day i while holding a stock
+            # Choices: keep holding (dp[i-1][1]) or buy stock (dp[i-1][0] - prices[i])
+            dp[i][1] = max(dp[i-1][1], dp[i-1][0] - prices[i])
+
+        # The maximum profit achievable by the last day without holding stock is in dp[-1][0]
+        return dp[-1][0]
+    
+```
+
+## Longest Increasing Subsequence
+
+**Solution**:
+1. **Define the DP Array**:
+   - `dp[i]` represents the length of the longest increasing subsequence ending at index `i`.
+   - Initialize each `dp[i]` as `1` since the minimum LIS ending at any element is the element itself.
+
+2. **Populate the DP Array**:
+   - For each element `i`, look at all previous elements `j` (from `0` to `i-1`):
+     - If `nums[i] > nums[j]`, then `nums[i]` can extend the subsequence ending at `j`.
+     - Update `dp[i]` as `max(dp[i], dp[j] + 1)` to reflect the longest sequence including `nums[i]`.
+
+3. **Final Result**:
+   - The length of the longest increasing subsequence is the maximum value in `dp`, representing the longest subsequence ending at each position.
+
+```python
+class Solution:
+    def lengthOfLIS(self, nums: List[int]) -> int:
+        # Edge case: if there is only one element, the longest increasing subsequence is itself
+        if len(nums) == 1:
+            return 1
+        
+        # Initialize DP array where dp[i] represents the length of the longest increasing
+        # subsequence ending at index i
+        dp = [1] * len(nums)
+
+        # Fill the DP array
+        for i in range(1, len(nums)):
+            for j in range(i):
+                # If nums[i] can extend the increasing subsequence ending at j
+                if nums[i] > nums[j]:
+                    # Update dp[i] to the maximum of its current value or dp[j] + 1
+                    dp[i] = max(dp[i], dp[j] + 1)
+        
+        # The longest increasing subsequence is the maximum value in dp array
+        return max(dp)
+
+
+"""
+Replacing elements in lis ensures it remains as "low" as possible because 
+smaller elements allow more room for subsequent elements to extend the subsequence
+"""
+
+class Solution:
+    def lengthOfLIS(self, nums: List[int]) -> int:
+        def binarySearch(lis: List[int], target: int) -> int:
+            """Find the position to insert target in lis using binary search."""
+            left, right = 0, len(lis) - 1
+            while left <= right:
+                mid = (left + right) // 2
+                if lis[mid] < target:
+                    left = mid + 1
+                else:
+                    right = mid - 1
+            return left  # Position to insert target
+
+        lis = []  # To store the smallest end elements of increasing subsequences
+        for num in nums:
+            pos = binarySearch(lis, num)
+            if pos == len(lis):  # Extend lis if target is larger than all elements
+                lis.append(num)
+            else:  # Replace the element at pos to maintain optimal lis
+                lis[pos] = num
+        return len(lis)  # Length of lis is the length of LIS
+        
+```
+
+## Longest Continuous Increasing Subsequence
+
+**Solution**:
+
+1. **Define the DP Array**:
+   - `dp[i]` represents the length of the LCIS ending at index `i`.
+   - Initialize `dp[i] = 1` for all indices since the minimum LCIS length ending at any element is `1`.
+
+2. **Update the DP Array**:
+   - For each index `i`:
+     - If `nums[i] > nums[i-1]`, extend the LCIS: `dp[i] = dp[i-1] + 1`.
+     - Otherwise, reset the LCIS at `i`: `dp[i] = 1`.
+
+3. **Final Result**:
+   - The length of the longest LCIS is `max(dp)`.
+
+```python
+class Solution:
+     def findLengthOfLCIS(self, nums: List[int]) -> int:
+        # Edge case: If the array has only one element, the LCIS is 1
+        if len(nums) == 1:
+            return 1
+        
+        # Initialize a DP array to track the LCIS ending at each index
+        dp = [1] * len(nums)  # Each element starts as 1 since the minimum LCIS is the element itself
+        
+        # Iterate through the array starting from the second element
+        for i in range(1, len(nums)):
+            # If the current element is greater than the previous one, it extends the LCIS
+            if nums[i] > nums[i-1]:
+                dp[i] = dp[i-1] + 1  # Extend the previous LCIS length
+        
+        # The result is the maximum value in the DP array
+        return max(dp)
+     
+```
+
+## Maximum Length of Repeated Subarray
+
+**Solution**:
+1. **Define the DP Table**:
+   - `dp[i][j]` represents the length of the longest common subarray ending at `nums1[i]` and `nums2[j]`.
+
+2. **Initialization**:
+   - For the first row and column:
+     - If `nums1[i] == nums2[0]`, set `dp[i][0] = 1`.
+     - If `nums2[j] == nums1[0]`, set `dp[0][j] = 1`.
+
+3. **Update the DP Table**:
+   - For each pair `(i, j)`:
+     - If `nums1[i] == nums2[j]`, extend the subarray:
+       - `dp[i][j] = dp[i-1][j-1] + 1`.
+     - Otherwise, reset `dp[i][j] = 0`.
+
+4. **Track Maximum Length**:
+   - Use a variable `result` to track the maximum value in the DP table.
+
+5. **Return Result**:
+   - The final value of `result` is the maximum length of the repeated subarray.
+
+
+```python
+class Solution:
+    def findLength(self, nums1: List[int], nums2: List[int]) -> int:
+        # Initialize the DP table
+        # dp[i][j] will store the length of the longest common subarray ending at nums1[i] and nums2[j]
+        dp = [[0] * len(nums2) for _ in range(len(nums1))]
+
+        result = 0  # Variable to track the maximum length of repeated subarray
+        
+        # Fill the first column of the DP table
+        for i in range(len(nums1)):
+            dp[i][0] = 1 if nums1[i] == nums2[0] else 0
+            result = max(result, dp[i][0])  # Update the maximum result
+        
+        # Fill the first row of the DP table
+        for j in range(len(nums2)):
+            dp[0][j] = 1 if nums2[j] == nums1[0] else 0
+            result = max(result, dp[0][j])  # Update the maximum result
+
+        # Populate the rest of the DP table
+        for i in range(1, len(nums1)):
+            for j in range(1, len(nums2)):
+                if nums1[i] == nums2[j]:  # If characters match, extend the common subarray
+                    dp[i][j] = dp[i-1][j-1] + 1
+                    result = max(result, dp[i][j])  # Update the maximum result
+
+        return result  # Return the maximum length of the repeated subarray
+    
+```
+
+## Longest Common Subsequence
+
+**Solution**:
+1. **Define the DP Table**:
+   - `dp[i][j]` represents the length of the LCS of `text1[:i]` and `text2[:j]`.
+
+2. **Initialization**:
+   - Base cases:
+     - `dp[0][j] = 0` for all `j`: An empty string has an LCS of 0 with any string.
+     - `dp[i][0] = 0` for all `i`.
+
+3. **Update the DP Table**:
+   - For each pair `(i, j)`:
+     - If `text1[i-1] == text2[j-1]`, extend the LCS:
+       - `dp[i][j] = dp[i-1][j-1] + 1`.
+     - Otherwise, take the maximum LCS of excluding one character:
+       - `dp[i][j] = max(dp[i-1][j], dp[i][j-1])`.
+
+4. **Result**:
+   - The length of the LCS is stored in `dp[len(text1)][len(text2)]`.
+
+
+```python
+class Solution:
+    def longestCommonSubsequence(self, text1: str, text2: str) -> int:
+        # Initialize DP table with an extra row and column for the base case (0-indexed)
+        # dp[i][j] represents the length of the LCS of text1[:i] and text2[:j]
+        dp = [[0] * (len(text2) + 1) for _ in range(len(text1) + 1)]
+
+        # Variable to track the result (maximum length of the LCS)
+        result = 0
+
+        # Populate the DP table
+        for i in range(1, len(text1) + 1):
+            for j in range(1, len(text2) + 1):
+                if text1[i-1] == text2[j-1]:  # If the characters match
+                    dp[i][j] = dp[i-1][j-1] + 1  # Extend the LCS
+                    result = max(result, dp[i][j])  # Update the result if needed
+                else:
+                    # Otherwise, take the maximum LCS without one of the characters
+                    dp[i][j] = max(dp[i-1][j], dp[i][j-1])
+
+        # Return the final LCS length
+        return result
+```
+
+## Uncrossed Lines
+
+**Solution**:
+
+This problem is a variation of the **Longest Common Subsequence (LCS)** problem.
+
+1. **Define the DP Table**:
+   - `dp[i][j]` represents the maximum number of uncrossed lines between `nums1[:i]` and `nums2[:j]`.
+
+2. **Update the DP Table**:
+   - For each pair `(i, j)`:
+     - If `nums1[i-1] == nums2[j-1]`, connect the elements and extend the count:
+       - `dp[i][j] = dp[i-1][j-1] + 1`.
+     - Otherwise, take the maximum from excluding one of the elements:
+       - `dp[i][j] = max(dp[i-1][j], dp[i][j-1])`.
+
+3. **Final Result**:
+   - The value `dp[len(nums1)][len(nums2)]` contains the maximum number of uncrossed lines.
+
+
+
+```python
+class Solution:
+    def maxUncrossedLines(self, nums1: List[int], nums2: List[int]) -> int:
+        # Initialize DP table with dimensions (len(nums1)+1) x (len(nums2)+1)
+        # dp[i][j] represents the maximum number of uncrossed lines between nums1[:i] and nums2[:j]
+        dp = [[0] * (len(nums2) + 1) for _ in range(len(nums1) + 1)]
+
+        result = 0  # Variable to store the maximum number of uncrossed lines
+
+        # Fill the DP table
+        for i in range(1, len(nums1) + 1):
+            for j in range(1, len(nums2) + 1):
+                if nums1[i-1] == nums2[j-1]:  # If the elements match
+                    dp[i][j] = dp[i-1][j-1] + 1  # Extend the matching pair
+                    result = max(result, dp[i][j])  # Update the result
+                else:
+                    # Otherwise, carry forward the maximum value by excluding one of the elements
+                    dp[i][j] = max(dp[i-1][j], dp[i][j-1])
+
+        # Return the maximum number of uncrossed lines
+        return result
+
+```
+
+## Maximum Subarray
+
+**Solution**:
+
+1. **Define the DP Array**:
+   - `dp[i]` represents the maximum sum of a subarray ending at index `i`.
+
+2. **Recurrence Relation**:
+   - At each index `i`:
+     - Either extend the previous subarray: `dp[i-1] + nums[i]`.
+     - Or start a new subarray at index `i`: `nums[i]`.
+   - Formula: `dp[i] = max(nums[i], dp[i-1] + nums[i])`.
+
+3. **Result**:
+   - The maximum subarray sum is the largest value in `dp`: `max(dp)`.
+
+```python
+class Solution:
+    def maxSubArray(self, nums: List[int]) -> int:
+        # Edge case: if there's only one element, the max subarray is the element itself
+        if len(nums) == 1:
+            return nums[0]
+        
+        # Initialize the DP array where dp[i] represents the maximum subarray sum ending at index i
+        dp = [0] * len(nums)
+        dp[0] = nums[0]  # Base case: max subarray sum at index 0 is nums[0]
+
+        # Fill the DP array
+        for i in range(1, len(nums)):
+            # Either extend the previous subarray or start a new subarray at i
+            dp[i] = max(nums[i], dp[i-1] + nums[i])
+
+        # The result is the maximum value in the DP array
+        return max(dp)
+    
+```
+## Is Subsequence
+
+1. Define a DP table `dp[i][j]`:
+   - `dp[i][j]` represents the length of the subsequence of `s[:i]` in `t[:j]`.
+2. Transition:
+   - If `s[i-1] == t[j-1]`, extend the subsequence: `dp[i][j] = dp[i-1][j-1] + 1`.
+   - Otherwise, carry forward the previous value: `dp[i][j] = dp[i][j-1]`.
+3. Check:
+   - If `dp[len(s)][len(t)] == len(s)`, then `s` is a subsequence of `t`.
+
+```python
+class Solution:
+    def isSubsequence(self, s: str, t: str) -> bool:
+        if len(s) > len(t):
+            return False
+        
+        dp = [[0] * (len(t) + 1) for _ in range(len(s) + 1)]
+
+        for i in range(1, len(s) + 1):
+            for j in range(1, len(t) + 1):
+                if s[i-1] == t[j-1]:
+                    dp[i][j] = dp[i-1][j-1] + 1
+                else:
+                    dp[i][j] = dp[i][j-1]
+
+        return dp[-1][-1] == len(s)
+        
+```
+
+Two Points
+
+```python
+class Solution:
+    def isSubsequence(self, s: str, t: str) -> bool:
+        i, j = 0, 0  # Pointers for s and t
+
+        # Traverse the string t
+        while i < len(s) and j < len(t):
+            if s[i] == t[j]:
+                i += 1  # Move both pointers if characters match
+            j += 1  # Always move pointer for t
+        
+        # If we've matched all characters of s, return True
+        return i == len(s)
+
+```
+
+## Distinct Subsequences
+
+**Solution**:
+
+1. **Define the DP Table**:
+   - `dp[i][j]` represents the number of ways to form `t[:j]` as a subsequence of `s[:i]`.
+
+2. **Base Cases**:
+   - `dp[i][0] = 1` for all `i`: One way to form an empty `t` (delete all characters in `s`).
+   - `dp[0][j] = 0` for all `j > 0`: Impossible to form a non-empty `t` from an empty `s`.
+
+3. **Recurrence Relation**:
+   - If `s[i-1] == t[j-1]`:
+     - Use the match or skip the character in `s`:
+       - `dp[i][j] = dp[i-1][j-1] + dp[i-1][j]`.
+   - If `s[i-1] != t[j-1]`:
+     - Skip the character in `s`:
+       - `dp[i][j] = dp[i-1][j]`.
+
+4. **Result**:
+   - The final value is stored in `dp[len(s)][len(t)]`.
+
+```python
+class Solution:
+    def numDistinct(self, s: str, t: str) -> int:
+        # If s is shorter than t, it's impossible to form t
+        if len(s) < len(t):
+            return 0
+        
+        # Initialize DP table with dimensions (len(s)+1) x (len(t)+1)
+        # dp[i][j] represents the number of ways to form t[:j] as a subsequence of s[:i]
+        dp = [[0] * (len(t) + 1) for _ in range(len(s) + 1)]
+        
+        # Base case: An empty string t can be formed by deleting all characters of s
+        for i in range(len(s) + 1):
+            dp[i][0] = 1
+
+        # Fill the DP table
+        for i in range(1, len(s) + 1):
+            for j in range(1, len(t) + 1):
+                if s[i-1] == t[j-1]:  # Characters match
+                    # Option 1: Use this match
+                    # Option 2: Skip this character in s
+                    dp[i][j] = dp[i-1][j-1] + dp[i-1][j]
+                else:  # Characters don't match
+                    # Skip this character in s
+                    dp[i][j] = dp[i-1][j]
+
+        # The result is stored in dp[len(s)][len(t)]
+        return dp[-1][-1]
+    
+```
+### Example: `s = "babgbag"` and `t = "bag"`
+
+#### Step-by-Step Walkthrough
+
+At `i = 4` (`s[:4] = "babg"`) and `j = 3` (`t[:3] = "bag"`):
+- `s[3] = "g"` and `t[2] = "g"`. Characters **match**.
+- When characters match, there are two choices:
+  1. **Use this match**:
+     - Use `s[3]` to match `t[2]`. In this case, the problem reduces to finding ways to form `"ba"` (`t[:2]`) from `"bab"` (`s[:3]`).
+     - This value is stored in `dp[3][2]`.
+  2. **Skip this match**:
+     - Do not use `s[3]` to match `t[2]`. The problem remains finding ways to form `"bag"` (`t[:3]`) from `"bab"` (`s[:3]`).
+     - This value is stored in `dp[3][3]`.
+
+
+## 
+
+**Solution**:
+
+1. **Define the DP Table**:
+   - `dp[i][j]` represents the minimum number of deletions needed to make `word1[:i]` and `word2[:j]` identical.
+
+2. **Base Cases**:
+   - If one string is empty:
+     - Delete all characters of the other string.
+
+3. **Recursive Relation**:
+   - If `word1[i-1] == word2[j-1]`:
+     - No deletion is needed:
+       ```
+       dp[i][j] = dp[i-1][j-1]
+       ```
+   - Otherwise:
+     - Minimum deletions of three cases:
+       1. Delete from `word1`.
+       2. Delete from `word2`.
+       3. Delete from both:
+       ```
+       dp[i][j] = min(dp[i-1][j] + 1, dp[i][j-1] + 1, dp[i-1][j-1] + 2)
+       ```
+
+4. **Final Result**:
+   - The value in `dp[len(word1)][len(word2)]` gives the minimum deletions.
+
+```python
+class Solution:
+    def minDistance(self, word1: str, word2: str) -> int:
+        # Initialize a DP table with dimensions (len(word1)+1) x (len(word2)+1)
+        # dp[i][j] will store the minimum number of deletions required
+        # to make word1[:i] and word2[:j] identical
+        dp = [[0] * (len(word2) + 1) for _ in range(len(word1) + 1)]
+
+        # Base case 1: If one string is empty, the only option is to delete all characters
+        # from the other string
+        for i in range(len(word1) + 1):
+            dp[i][0] = i  # Deleting all characters from word1[:i]
+        for j in range(len(word2) + 1):
+            dp[0][j] = j  # Deleting all characters from word2[:j]
+
+        # Fill the DP table
+        for i in range(1, len(word1) + 1):
+            for j in range(1, len(word2) + 1):
+                # If the characters match, no additional deletion is required for these characters
+                if word1[i-1] == word2[j-1]:
+                    dp[i][j] = dp[i-1][j-1]  # Take the result from the previous diagonal cell
+                else:
+                    # If the characters do not match, consider three possible options:
+                    # 1. Delete the character from word1: dp[i-1][j] + 1
+                    # 2. Delete the character from word2: dp[i][j-1] + 1
+                    # 3. Delete the characters from both word1 and word2: dp[i-1][j-1] + 2
+                    dp[i][j] = min(dp[i-1][j] + 1, dp[i][j-1] + 1, dp[i-1][j-1] + 2)
+
+        # The result is stored in the bottom-right corner of the DP table
+        return dp[-1][-1]
+
+```
+
+## Edit Distance
+
+**Solution**:
+
+1. **Define the DP Table**:
+   - `dp[i][j]` represents the minimum number of operations required to convert `word1[:i]` (first `i` characters of `word1`) into `word2[:j]` (first `j` characters of `word2`).
+
+2. **Base Cases**:
+   - If `word2` is empty, all characters of `word1` need to be deleted:
+     ```
+     dp[i][0] = i
+     ```
+   - If `word1` is empty, all characters of `word2` need to be inserted:
+     ```
+     dp[0][j] = j
+     ```
+
+3. **Recursive Relation**:
+   - If `word1[i-1] == word2[j-1]`:
+     - No operation is needed for this character:
+       ```
+       dp[i][j] = dp[i-1][j-1]
+       ```
+   - If `word1[i-1] != word2[j-1]`:
+     - Consider the minimum cost of three operations:
+       1. **Insert** a character into `word1`:
+          ```
+          dp[i][j] = dp[i][j-1] + 1
+          ```
+       2. **Delete** a character from `word1`:
+          ```
+          dp[i][j] = dp[i-1][j] + 1
+          ```
+       3. **Replace** a character in `word1`:
+          ```
+          dp[i][j] = dp[i-1][j-1] + 1
+          ```
+
+   - Combine these operations:
+     ```
+     dp[i][j] = min(dp[i-1][j] + 1, dp[i][j-1] + 1, dp[i-1][j-1] + 1)
+     ```
+
+4. **Result**:
+   - The value in `dp[len(word1)][len(word2)]` gives the minimum edit distance.
+
+```python
+class Solution:
+    def minDistance(self, word1: str, word2: str) -> int:
+        # Handle edge cases where one or both strings are empty
+        if len(word1) == 0 or len(word2) == 0:
+            # If either string is empty, the answer is the length of the other string
+            return len(word1) if len(word2) == 0 else len(word2)
+        
+        # Initialize a DP table with dimensions (len(word1)+1) x (len(word2)+1)
+        # dp[i][j] will represent the minimum number of operations required
+        # to convert word1[:i] to word2[:j]
+        dp = [[0] * (len(word2) + 1) for _ in range(len(word1) + 1)]
+        
+        # Base case 1: If word2 is empty, delete all characters from word1
+        for i in range(len(word1) + 1):
+            dp[i][0] = i
+        
+        # Base case 2: If word1 is empty, insert all characters from word2
+        for j in range(len(word2) + 1):
+            dp[0][j] = j
+
+        # Fill the DP table
+        for i in range(1, len(word1) + 1):
+            for j in range(1, len(word2) + 1):
+                # If the current characters match, no operation is needed for these characters
+                if word1[i-1] == word2[j-1]:
+                    dp[i][j] = dp[i-1][j-1]
+                else:
+                    # If characters do not match, consider three possible operations:
+                    # 1. Delete from word1: dp[i-1][j] + 1
+                    # 2. Insert into word1 (Delete from word2): dp[i][j-1] + 1
+                    # 3. Replace the character: dp[i-1][j-1] + 1
+                    dp[i][j] = min(dp[i-1][j] + 1, dp[i][j-1] + 1, dp[i-1][j-1] + 1)
+
+        # The result is stored in dp[len(word1)][len(word2)]
+        return dp[-1][-1]
+
+```
+
+## 
+
+**Solution**:
+
+1. **Define the DP Table**:
+   - `dp[i][j]` is a boolean value that represents whether the substring `s[i:j+1]` is a palindrome.
+
+2. **Base Cases**:
+   - **Single-character substrings** (`i == j`): These are always palindromes.
+   - **Two-character substrings** (`j - i == 1`): These are palindromes if the two characters are equal.
+
+3. **Recursive Relation**:
+   - For longer substrings (`j - i > 1`):
+     - `s[i:j+1]` is a palindrome if:
+       - The characters at `i` and `j` are the same (`s[i] == s[j]`), and
+       - The inner substring `s[i+1:j]` is also a palindrome (`dp[i+1][j-1]`).
+
+4. **Count the Palindromes**:
+   - If `dp[i][j]` is `True`, increment the count of palindromic substrings.
+
+5. **Result**:
+   - The total number of palindromic substrings is stored in the variable `result`.
+
+
+```python
+class Solution:
+    def countSubstrings(self, s: str) -> int:
+        # Edge case: If the string has only one character, there is exactly one palindrome
+        if len(s) == 1:
+            return 1
+
+        # Initialize a 2D DP table where dp[i][j] indicates whether s[i:j+1] is a palindrome
+        dp = [[False] * len(s) for _ in range(len(s))]
+
+        result = 0  # Variable to store the count of palindromic substrings
+
+        # Fill the DP table from bottom-right to top-left
+        for i in range(len(s) - 1, -1, -1):  # Start from the last character of s
+            for j in range(i, len(s)):  # For each character from i to the end of the string
+                # Check if characters at i and j are the same
+                if s[i] == s[j]:
+                    # If the substring is of length 1 or 2, it's a palindrome
+                    if j - i <= 1:
+                        dp[i][j] = True
+                        result += 1  # Increment count for this palindrome
+                    # If it's longer, check the inner substring (dp[i+1][j-1])
+                    elif dp[i+1][j-1]:
+                        dp[i][j] = True
+                        result += 1  # Increment count for this palindrome
+
+        # Return the total count of palindromic substrings
+        return result
+
+```
+
+Two Pointers:
+
+```python
+class Solution:
+    def countSubstrings(self, s: str) -> int:
+        def expandAroundCenter(left: int, right: int) -> int:
+            count = 0
+            # Expand outward while the characters match and stay within bounds
+            while left >= 0 and right < len(s) and s[left] == s[right]:
+                count += 1  # Found a palindrome
+                left -= 1   # Move left pointer outward
+                right += 1  # Move right pointer outward
+            return count
+        
+        result = 0
+        for i in range(len(s)):
+            # Count odd-length palindromes (single character as center)
+            result += expandAroundCenter(i, i)
+            # Count even-length palindromes (two characters as center)
+            result += expandAroundCenter(i, i + 1)
+        
+        return result
+    
+```
+
+## Longest Palindromic Subsequence
+
+**Solution**:
+1. **Define the DP Table**:
+   - `dp[i][j]` represents the length of the longest palindromic subsequence in `s[i:j+1]`.
+
+2. **Base Case**:
+   - A single character is always a palindrome:
+     ```
+     dp[i][i] = 1
+     ```
+
+3. **Recursive Relation**:
+   - If `s[i] == s[j]`:
+     - Extend the palindromic subsequence:
+       ```
+       dp[i][j] = dp[i+1][j-1] + 2
+       ```
+   - If `s[i] != s[j]`:
+     - Exclude one character and take the maximum:
+       ```
+       dp[i][j] = max(dp[i+1][j], dp[i][j-1])
+       ```
+
+4. **Iterative Filling**:
+   - Fill the DP table from the bottom-right to the top-left, ensuring all dependencies are computed.
+
+5. **Result**:
+   - The value in `dp[0][len(s)-1]` gives the length of the longest palindromic subsequence for the entire string.
+
+```python
+class Solution:
+    def longestPalindromeSubseq(self, s: str) -> int:
+        # Edge case: If the string length is 1, the longest palindromic subsequence is the string itself
+        if len(s) == 1:
+            return 1
+        
+        # Initialize a DP table with dimensions (len(s) x len(s))
+        # dp[i][j] represents the length of the longest palindromic subsequence in s[i:j+1]
+        dp = [[0] * len(s) for _ in range(len(s))]
+
+        # Fill the DP table
+        # Iterate from the end of the string to the beginning (bottom-up approach)
+        for i in range(len(s) - 1, -1, -1):  # Corrected range for the outer loop
+            dp[i][i] = 1  # A single character is always a palindrome of length 1
+            for j in range(i + 1, len(s)):  # j > i to avoid redundant computations
+                if s[i] == s[j]:
+                    # If the characters match, extend the palindromic subsequence
+                    dp[i][j] = dp[i+1][j-1] + 2
+                else:
+                    # If they don't match, take the max of excluding one character
+                    dp[i][j] = max(dp[i+1][j], dp[i][j-1])
+
+        # The result is stored in dp[0][-1], which considers the entire string
+        return dp[0][-1]
+
+```
+
+# Monotonic Stack
+
+A **monotonic stack** is a stack that maintains a specific order (either increasing or decreasing) among its elements. It is particularly useful for solving problems involving comparisons between elements, such as finding the **next greater element**, **next smaller element**, or solving **range queries**.
+
+---
+
+## Key Characteristics
+
+1. **Monotonic Increasing Stack**:
+   - Maintains elements in **increasing order** from bottom to top.
+   - The top of the stack is the **smallest element** among all elements in the stack.
+
+2. **Monotonic Decreasing Stack**:
+   - Maintains elements in **decreasing order** from bottom to top.
+   - The top of the stack is the **largest element** among all elements in the stack.
+
+
+## Why Use a Monotonic Stack?
+
+1. **Efficient Comparisons**:
+   - Avoids brute force comparisons by keeping track of candidates for the next greater or smaller elements.
+   - Reduces time complexity to \(O(n)\) in many cases.
+
+2. **Applicable Problems**:
+   - Finding **next greater/smaller elements**.
+   - Solving **range queries** efficiently (e.g., sliding window maximum/minimum).
+   - Problems involving **temperatures**, **stock spans**, or **histogram areas**.
+
+---
+
+## Daily Temperatures
+
+1. Use a **monotonic decreasing stack** to keep track of indices of temperatures.
+   - The stack ensures that for each index `i`, the temperatures corresponding to indices in the stack are in a strictly decreasing order.
+
+2. For each temperature:
+   - If the current temperature is greater than the temperature corresponding to the top of the stack:
+     - Pop indices from the stack and compute the number of days until a warmer temperature.
+   - Otherwise, push the current index onto the stack.
+
+3. After traversing the temperatures:
+   - Any indices left in the stack correspond to days with no warmer temperatures, so their `answer` remains `0`.
+
+```python
+class Solution:
+    def dailyTemperatures(self, temperatures: List[int]) -> List[int]:
+        if len(temperatures) == 1:
+            return [0]  # Single day means no warmer days ahead
+        
+        stack = []  # Monotonic stack to keep track of indices of decreasing temperatures
+        answer = [0] * len(temperatures)  # Result array initialized with 0
+
+        for i in range(len(temperatures)):
+            # While the stack is not empty and the current temperature is greater
+            # than the temperature at the index stored at the top of the stack
+            while stack and temperatures[i] > temperatures[stack[-1]]:
+                # Get the index of the last temperature that is smaller
+                prev_index = stack.pop()
+                # Calculate the number of days until a warmer temperature
+                answer[prev_index] = i - prev_index
+            
+            # Push the current day's index onto the stack
+            stack.append(i)
+
+        # Indices left in the stack correspond to days with no warmer temperatures ahead
+        # These are already set to 0 in the `answer` array
+        
+        return answer
+
+```
+
+## Next Greater Element I
+
+**Solution**:
+
+1. **Mapping `nums1` to Indices**:
+   - Use a dictionary to map elements of `nums1` to their indices for efficient updates.
+
+2. **Monotonic Decreasing Stack**:
+   - Traverse `nums2` while maintaining a stack of indices.
+   - The stack stores indices of elements in decreasing order of their values.
+   - When a greater element is found:
+     - Pop indices from the stack and update the result for the corresponding elements.
+
+3. **Default Value**:
+   - Initialize the result array with `-1` for cases where no greater element exists.
+
+```python
+class Solution:
+    def nextGreaterElement(self, nums1: List[int], nums2: List[int]) -> List[int]:
+        # Initialize the answer array with -1 (default when no next greater element exists)
+        ans = [-1] * len(nums1)
+
+        # Create a mapping of elements in nums1 to their indices
+        nums_12_map = {num: i for i, num in enumerate(nums1)}
+
+        # Monotonic stack to find the next greater element
+        stack = []
+
+        # Traverse nums2 to find next greater elements
+        for j in range(len(nums2)):
+            # While the stack is not empty and the current number is greater than
+            # the number corresponding to the index at the top of the stack
+            while stack and nums2[j] > nums2[stack[-1]]:
+                # Check if the number at the top of the stack exists in nums1
+                if nums2[stack[-1]] in nums_12_map:
+                    # Update the answer for the corresponding index in nums1
+                    ans[nums_12_map[nums2[stack[-1]]]] = nums2[j]
+                stack.pop()  # Pop the index from the stack
+
+            # Push the current index onto the stack
+            stack.append(j)
+
+        # Return the answer array with next greater elements for nums1
+        return ans
+    
+```
+
+## Next Greater Element II
+
+**Solution**:
+1. **Simulating a Circular Array**:
+   - Traverse the array twice (using indices `i % len(nums)`), allowing you to simulate the circular nature of the array.
+
+2. **Monotonic Decreasing Stack**:
+   - Use a stack to store indices of elements in decreasing order.
+   - When a greater element is found:
+     - Pop indices from the stack and update the result for those indices.
+
+3. **Answer Array**:
+   - Initialize the result array with `-1` for elements with no next greater value.
+
+4. **Avoid Redundant Indices**:
+   - Add indices to the stack only during the first pass (first \(n\) iterations).
+
+```python
+class Solution:
+    def nextGreaterElements(self, nums: List[int]) -> List[int]:
+        if len(nums) == 1:
+            return [-1]  # A single element has no greater element
+
+        # Initialize the answer array with -1 (default when no next greater element exists)
+        ans = [-1] * len(nums)
+
+        # Monotonic stack to store indices
+        stack = []
+
+        # Traverse the array twice (to simulate circular behavior)
+        for i in range(2 * len(nums)):
+            index = i % len(nums)  # Get the actual index in the circular array
+            
+            # While the stack is not empty and the current element is greater
+            # than the element at the index stored at the top of the stack
+            while stack and nums[index] > nums[stack[-1]]:
+                pre_index = stack.pop()  # Pop the index of the smaller element
+                ans[pre_index] = nums[index]  # Update the next greater element
+            
+            # Only add indices from the first pass
+            if i < len(nums):
+                stack.append(index)
+
+        return ans
+
+```
+
+## Trapping Rain Water
+
+**Solution**:
+
+- The water trapped at each index depends on the **minimum of the left and right boundaries** surrounding it.
+- Use a **monotonic decreasing stack** to efficiently identify the boundaries and calculate the water trapped.
+
+---
+
+## Algorithm
+
+1. **Initialize**:
+   - A `stack` to store indices of the bars.
+   - A variable `volume` to accumulate the total trapped water.
+
+2. **Traverse the Array**:
+   - For each bar at index `i`:
+     1. While the stack is not empty and the current bar's height is greater than the height of the bar at the top of the stack:
+        - Pop the top of the stack as the "bottom" of the trapped water.
+        - If the stack becomes empty, break (no left boundary exists).
+        - Calculate the water trapped above this bottom:
+          - Height of trapped water = `min(left, right) - height[bottom]`.
+          - Width of trapped water = `i - stack[-1] - 1`.
+        - Add this water to `volume`.
+
+     2. Push the current index onto the stack.
+
+3. **Return the Result**:
+   - The total trapped water is stored in `volume`.
+
+
+```python
+class Solution:
+    def trap(self, height: List[int]) -> int:
+        if len(height) < 3:  # Less than 3 bars cannot trap any water
+            return 0
+        
+        stack = []  # Monotonic stack to store indices of the bars
+        volume = 0  # Total water trapped
+
+        # Traverse through the heights
+        for i in range(len(height)):
+            # While the current height is greater than the height of the bar at the top of the stack
+            while stack and height[i] > height[stack[-1]]:
+                bottom = stack.pop()  # The bar at the top of the stack serves as the bottom of the trapped water
+                
+                if not stack:
+                    break  # No left boundary for the water
+
+                # Calculate water trapped above the current bottom bar
+                left = height[stack[-1]]  # Height of the left boundary
+                right = height[i]  # Height of the right boundary
+                h = min(left, right) - height[bottom]  # Effective height of trapped water
+                w = i - stack[-1] - 1  # Width between the left and right boundaries
+                volume += h * w  # Accumulate the water volume
+
+            # If the current height is the same as the height at the stack's top, pop it (optional)
+            if stack and height[i] == height[stack[-1]]:
+                stack.pop()
+
+            stack.append(i)  # Push the current index onto the stack
+
+        return volume
+
+```
+
+## 
+
+```python
+class Solution:
+    def largestRectangleArea(self, heights: List[int]) -> int:
+        # Initialize a stack to keep track of indices of heights
+        stack = []
+        max_area = 0
+        
+        # Append a zero-height bar to ensure all elements in the stack get processed
+        # [4, 6, 8]
+        heights.append(0)
+        
+        for i, h in enumerate(heights):
+            # Ensure the stack maintains a non-decreasing order of heights
+            while stack and heights[stack[-1]] > h:
+                # Pop the top element (height index)
+                height = heights[stack.pop()]
+                
+                # Calculate the width
+                # If the stack is empty, the width is the current index i
+                # This happens when there are no smaller heights to the left,
+                # meaning the rectangle extends from index 0 to index i.
+                width = i if not stack else i - stack[-1] - 1
+                
+                # Update the maximum area
+                max_area = max(max_area, height * width)
+            
+            # Push the current index onto the stack
+            stack.append(i)
+        
+        return max_area
+    
+```
+
+# TOP 150
+
+## Merge Sorted Array
+
+```python
+class Solution:
+    def merge(self, nums1: List[int], m: int, nums2: List[int], n: int) -> None:
+        """
+        Merges two sorted arrays nums1 and nums2 into nums1 in-place.
+        """
+        # Pointers for nums1, nums2, and the position to insert in nums1
+        p1 = m - 1  # Last valid element in nums1
+        p2 = n - 1  # Last element in nums2
+        p = m + n - 1  # Last position in nums1
+
+        # Merge nums1 and nums2 from the back
+        while p1 >= 0 and p2 >= 0:
+            if nums1[p1] > nums2[p2]:
+                nums1[p] = nums1[p1]  # Place nums1[p1] at the current position
+                p1 -= 1
+            else:
+                nums1[p] = nums2[p2]  # Place nums2[p2] at the current position
+                p2 -= 1
+            p -= 1  # Move the insertion pointer backward
+
+        # Copy remaining elements from nums2, if any
+        while p2 >= 0:
+            nums1[p] = nums2[p2]
+            p2 -= 1
+            p -= 1
+
+```
+
+## Remove Duplicates from Sorted Array
+
+``` python
+class Solution:
+    def removeDuplicates(self, nums: List[int]) -> int:
+        # Initialize two pointers
+        slow, fast = 0, 1
+
+        # Traverse the array with the fast pointer
+        while fast < len(nums):
+            # If a new unique element is found
+            if nums[slow] != nums[fast]:
+                slow += 1  # Move the slow pointer
+                nums[slow] = nums[fast]  # Copy the unique element to the slow pointer's position
+
+            fast += 1  # Always increment the fast pointer
+
+        # Return the length of the unique portion of the array
+        return slow + 1
+    
+```
+
+## Majority Element
+
+### Boyer-Moore Voting Algorithm
+
+**Key Idea**:
+
+ Use a counter to track a potential majority element (`candidate`).
+  - Traverse the array:
+    - If the counter is `0`, set the current element as the `candidate`.
+    - If the current element matches the `candidate`, increment the counter.
+    - Otherwise, decrement the counter.
+
+```python
+class Solution:
+    def majorityElement(self, nums: List[int]) -> int:
+        candidate = None
+        count = 0
+
+        # Phase 1: Find a candidate
+        for num in nums:
+            if count == 0:
+                candidate = num
+            count += 1 if num == candidate else -1
+
+        # Phase 2: (Optional) Verify the candidate
+        # If the problem guarantees that a majority element always exists, skip this step.
+        # count = sum(1 for num in nums if num == candidate)
+        # if count > len(nums) // 2:
+        #     return candidate
+
+        return candidate
+``` 
+
+## Remove Duplicates from Sorted Array II
+
+```python
+class Solution:
+    def removeDuplicates(self, nums: List[int]) -> int:
+        if len(nums) == 1:
+            return 1  # If there's only one element, return 1
+        
+        slow, fast = 0, 1  # Initialize two pointers
+        count = 0  # Track the count of duplicates
+
+        # Traverse the array using the fast pointer
+        while fast < len(nums):
+            if nums[slow] == nums[fast]:
+                if count == 0:  # Allow the duplicate if it appears at most twice
+                    count = 1
+                    slow += 1
+                    nums[slow] = nums[fast]
+            else:  # If the elements are different
+                count = 0  # Reset the count
+                slow += 1
+                nums[slow] = nums[fast]  # Update the position in the array
+            
+            fast += 1  # Move the fast pointer forward
+        
+        return slow + 1  # Return the new length of the array
+
+```
+
+**Optimization**:
+
+```python
+class Solution:
+    def removeDuplicates(self, nums: List[int]) -> int:
+        if len(nums) <= 2:
+            return len(nums)  # Arrays of size 1 or 2 are already valid
+
+        slow = 1  # Start from the second element
+
+        # Traverse the array from the third element onward
+        for fast in range(2, len(nums)):
+            # If the current element is different from the element two steps back
+            if nums[fast] != nums[slow - 1]:
+                slow += 1
+                nums[slow] = nums[fast]  # Move the current element to the valid position
+
+        return slow + 1  # Return the new length of the modified array
+
+```
+
+## Rotate Array
+
+```python
+class Solution:
+    def rotate(self, nums: List[int], k: int) -> None:
+        """
+        Rotates the array to the right by k steps.
+        This modifies nums in-place.
+        """
+        def reverse(start: int, end: int) -> None:
+            # Helper function to reverse elements in nums[start:end+1]
+            while start < end:
+                nums[start], nums[end] = nums[end], nums[start]
+                start += 1
+                end -= 1
+
+        n = len(nums)
+        k %= n  # Handle cases where k > n
+
+        # Step 1: Reverse the entire array
+        reverse(0, n - 1)
+
+        # Step 2: Reverse the first k elements
+        reverse(0, k - 1)
+
+        # Step 3: Reverse the remaining n-k elements
+        reverse(k, n - 1)
+        
+```
+
+
+
+## Roman to Integer
+
+```python
+class Solution:
+    def romanToInt(self, s: str) -> int:
+        # Mapping of Roman numerals to integers
+        roman2int = {
+            'I': 1,
+            'V': 5,
+            'X': 10,
+            'L': 50,
+            'C': 100,
+            'D': 500,
+            'M': 1000
+        }
+
+        # Edge case: Empty string
+        if not s:
+            return 0
+
+        result = 0
+        prev_value = 0
+
+        # Iterate through the Roman numeral string
+        for char in s:
+            cur_value = roman2int[char]
+
+            # If the current value is greater than the previous value, apply subtractive rule
+            if cur_value > prev_value:
+                result += cur_value - 2 * prev_value
+            else:
+                result += cur_value
+
+            # Update previous value for the next iteration
+            prev_value = cur_value
+
+        return result
+
+```
+
+##
+
+```python
+def intToRoman(self, num: int) -> str:
+    # Mapping of Roman numeral values to symbols in descending order
+    value_to_symbol = [
+        (1000, 'M'),
+        (900, 'CM'),
+        (500, 'D'),
+        (400, 'CD'),
+        (100, 'C'),
+        (90, 'XC'),
+        (50, 'L'),
+        (40, 'XL'),
+        (10, 'X'),
+        (9, 'IX'),
+        (5, 'V'),
+        (4, 'IV'),
+        (1, 'I')
+    ]
+
+    # StringBuilder to build the Roman numeral
+    result = []
+
+    # Iterate through the value-to-symbol mapping
+    for value, symbol in value_to_symbol:
+        # Determine the number of times the current value fits into num
+        while num >= value:
+            result.append(symbol)  # Append the corresponding Roman numeral symbol
+            num -= value  # Reduce num by the value of the symbol
+
+    return ''.join(result)
+    
+```
+
+##
+
+```python
+def removeElement(self, nums: List[int], val: int) -> int:
+    # Initialize a pointer for the next position to overwrite
+    slow = 0
+
+    # Traverse through the array
+    for fast in range(len(nums)):
+        # If the current element is not equal to val, keep it
+        if nums[fast] != val:
+            nums[slow] = nums[fast]
+            slow += 1
+
+    # Return the new length of the array after removing val
+    return slow
+
+```
+
+##  Insert Delete GetRandom O(1)
+
+```python
+class RandomizedSet:
+
+    def __init__(self):
+        """
+        Initialize the data structure.
+        - `values`: List to store the elements for random access.
+        - `indices`: Dictionary to map element values to their indices for O(1) lookup and removal.
+        """
+        self.values = []  # List to hold elements
+        self.indices = {}  # Dictionary to map values to their indices
+
+    def insert(self, val: int) -> bool:
+        """
+        Inserts a value into the set. Returns True if the value was not already present, False otherwise.
+        """
+        if val in self.indices:
+            return False  # Value already exists, insertion failed
+        self.indices[val] = len(self.values)  # Store the index of the new value
+        self.values.append(val)  # Add the value to the list
+        return True
+
+    def remove(self, val: int) -> bool:
+        """
+        Removes a value from the set. Returns True if the value was present, False otherwise.
+        """
+        if val not in self.indices:
+            return False  # Value not found, removal failed
+
+        # Get the index of the element to remove
+        index = self.indices[val]
+        # Get the last element in the list
+        last = self.values[-1]
+
+        # Replace the element to remove with the last element
+        self.values[index] = last
+        # Update the index of the last element in the dictionary
+        self.indices[last] = index
+
+        # Remove the last element from the list
+        self.values.pop()
+        # Delete the removed element from the dictionary
+        del self.indices[val]
+
+        return True
+
+    def getRandom(self) -> int:
+        """
+        Returns a random element from the set.
+        """
+        return random.choice(self.values)
+
+```
+
+## Valid Palindrome
+
+```python
+class Solution:
+    def isPalindrome(self, s: str) -> bool:
+        # Helper function to check if a character is alphanumeric
+        def isAlphaNum(char: str):
+            # Check if the character is a digit ('0'-'9'), uppercase ('A'-'Z'), or lowercase ('a'-'z')
+            return (ord('A') <= ord(char) <= ord('Z') or
+                    ord('a') <= ord(char) <= ord('z') or
+                    ord('0') <= ord(char) <= ord('9'))
+        
+        # Initialize two pointers: one at the start and the other at the end of the string
+        start, end = 0, len(s) - 1
+
+        # Iterate until the two pointers meet
+        while start < end:
+            # Move the `start` pointer forward until an alphanumeric character is found
+            while start < end and not isAlphaNum(s[start]):
+                start += 1
+
+            # Move the `end` pointer backward until an alphanumeric character is found
+            while start < end and not isAlphaNum(s[end]):
+                end -= 1
+
+            # Compare the characters at `start` and `end`, ignoring case
+            if s[start].lower() != s[end].lower():
+                return False  # Return False if characters don't match
+
+            # Move both pointers inward
+            start += 1
+            end -= 1
+        
+        # If all characters matched, return True
+        return True
+
+```
+
+## Minimum Size Subarray Sum
+
+```python
+class Solution:
+    def minSubArrayLen(self, target: int, nums: List[int]) -> int:
+        # Initialize pointers and variables
+        left = 0
+        cur_sum = 0  # Current sum of the window
+        min_len = float('inf')  # Initialize min_len to infinity for comparison
+
+        # Iterate through the array with the right pointer
+        for right in range(len(nums)):
+            cur_sum += nums[right]  # Add the current number to the window sum
+
+            # Shrink the window from the left as long as the condition is met
+            while cur_sum >= target:
+                # Update the minimum length
+                min_len = min(min_len, right - left + 1)
+                cur_sum -= nums[left]  # Remove the leftmost element
+                left += 1  # Move the left pointer forward
+
+        # Return the minimum length if found; otherwise, return 0
+        return min_len if min_len != float('inf') else 0
+
+```
+
+## Longest Substring Without Repeating Characters
+
+```python
+class Solution:
+    def lengthOfLongestSubstring(self, s: str) -> int:
+    # Initialize variables
+    char_set = set()  # To store unique characters in the current window
+    left = 0  # Left pointer for the sliding window
+    max_length = 0  # To track the length of the longest substring
+
+    # Iterate through the string with the right pointer
+    for right in range(len(s)):
+        # Shrink the window if the current character is already in the set
+        while s[right] in char_set:
+            char_set.remove(s[left])  # Remove the leftmost character
+            left += 1  # Move the left pointer forward
+
+        # Add the current character to the set
+        char_set.add(s[right])
+
+        # Update the maximum length of the substring
+        max_length = max(max_length, right - left + 1)
+
+    return max_length
+
+```
+
+## Product Except Self
+
+**Solution**:
+prefix and suffix product
+
+```python
+class Solution:
+    def productExceptSelf(self, nums: List[int]) -> List[int]:
+        # Initialize the result array with all elements as 1
+        ans = [1] * len(nums)
+
+        # First pass: Compute the prefix product for each index
+        # ans[i] will store the product of all elements to the left of `i`
+        for i in range(1, len(ans)):
+            ans[i] = ans[i-1] * nums[i-1]  # Multiply the previous prefix with nums[i-1]
+
+        # Initialize a suffix product variable
+        suffix = 1
+        # Second pass: Compute the suffix product for each index
+        # Multiply the suffix product with the corresponding prefix product
+        for i in range(len(ans)-2, -1, -1):  # Start from the second-to-last element
+            suffix *= nums[i+1]  # Update the suffix product
+            ans[i] *= suffix     # Multiply the prefix product stored in `ans[i]` with the suffix
+
+        return ans
+
+```
+
+## Longest Common Prefix
+
+p.s., s[:count] will return the entire string when count > len(s)
+
+```python
+class Solution:
+    def longestCommonPrefix(self, strs: List[str]) -> str:
+        if not strs:  # Handle edge case for empty input
+            return ""
+
+        pref = strs[0]  # Start with the first string as the prefix
+        count = len(pref)  # Track the length of the prefix
+
+        for s in strs[1:]:  # Compare the prefix with each subsequent string
+            while pref[:count] != s[:count]:
+                count -= 1  # Reduce the length of the prefix
+                if count == 0:  # If prefix becomes empty, no common prefix exists
+                    return ""
+        
+        return pref[:count]
+
+```
+
+## Longest Consecutive Sequence
+
+```python
+class Solution:
+    def longestConsecutive(self, nums: List[int]) -> int:
+        if not nums:  # Handle edge case for empty array
+            return 0
+        
+        num_set = set(nums)
+        longest_streak = 0
+
+        for num in num_set:
+            # Only start counting if `num` is the beginning of a sequence
+            if num - 1 not in num_set:
+                current_num = num
+                current_streak = 1
+
+                # Count consecutive numbers
+                while current_num + 1 in num_set:
+                    current_num += 1
+                    current_streak += 1
+
+                # Update the longest streak
+                longest_streak = max(longest_streak, current_streak)
+
+        return longest_streak
+
+```
+
+## Rotate Image
+
+```python
+class Solution:
+    def rotate(self, matrix: List[List[int]]) -> None:
+        """
+        Rotate the input NxN matrix 90 degrees clockwise in-place.
+        Do not return anything, modify matrix in-place instead.
+        """
+        n = len(matrix)  # Size of the matrix
+        top, bottom, left, right = 0, n-1, 0, n-1  # Initialize boundaries
+
+        # Loop to process layers from the outermost to the innermost
+        while n > 1:
+            # Rotate the current layer
+            for i in range(n-1):  # Process the elements in the current layer
+                # Save the top-left element temporarily
+                element = matrix[top][left + i]
+                
+                # Perform 4-way rotation:
+                # 1. Move element from left column to top row
+                matrix[top][left + i] = matrix[bottom - i][left]
+                # 2. Move element from bottom row to left column
+                matrix[bottom - i][left] = matrix[bottom][right - i]
+                # 3. Move element from right column to bottom row
+                matrix[bottom][right - i] = matrix[top + i][right]
+                # 4. Move saved element to right column
+                matrix[top + i][right] = element
+
+            # Move to the next inner layer by updating boundaries
+            n -= 2
+            top += 1
+            bottom -= 1
+            left += 1
+            right -= 1
+
+```
+
+## Set Matrix Zeroes
+
+```python
+class Solution:
+    def setZeroes(self, matrix: List[List[int]]) -> None:
+        """
+        Do not return anything, modify matrix in-place instead.
+        """
+        # Get the number of rows and columns in the matrix
+        row, col = len(matrix), len(matrix[0])
+
+        # Initialize flags for rows and columns to track where zeros exist
+        row_flag = [0] * row
+        col_flag = [0] * col
+
+        # First pass: Identify rows and columns that need to be zeroed
+        for i in range(row):
+            for j in range(col):
+                # If an element is zero, mark its row and column in the flags
+                if matrix[i][j] == 0:
+                    row_flag[i] = 1
+                    col_flag[j] = 1
+
+        # Second pass: Update the matrix based on the flags
+        for i in range(row):
+            for j in range(col):
+                # If the current row or column is marked, set the element to zero
+                if row_flag[i] or col_flag[j]:
+                    matrix[i][j] = 0
+
+```
+
+## Summary Ranges
+
+```python
+class Solution:
+    def summaryRanges(self, nums: List[int]) -> List[str]:
+        result = []  # List to store the resulting ranges
+
+        slow = 0  # Initialize the slow pointer to traverse the array
+        while slow < len(nums):  # Continue until all elements are processed
+            fast = slow  # Start the fast pointer at the same position as slow
+
+            # Expand the fast pointer as long as consecutive numbers are found
+            while fast + 1 < len(nums) and nums[fast + 1] == nums[fast] + 1:
+                fast += 1
+
+            # If there is a range (more than one element), add it in the format "start->end"
+            if fast > slow:
+                result.append(str(nums[slow]) + '->' + str(nums[fast]))
+            else:
+                # If there's only one element, add it as a single number
+                result.append(str(nums[slow]))
+
+            # Move the slow pointer to the next unprocessed element
+            fast += 1
+            slow = fast
+
+        return result
+
+```
+
+## Game of Life
+
+```python
+class Solution:
+    def gameOfLife(self, board: List[List[int]]) -> None:
+        """
+        Updates the board in-place to the next state of the Game of Life.
+        """
+        # Get the number of rows and columns
+        row, col = len(board), len(board[0])
+
+        # Define the 8 possible directions of neighbors
+        directions = [
+            (-1, -1), (-1, 0), (-1, 1),  # Top-left, Top, Top-right
+            (0, -1),         (0, 1),     # Left, Right
+            (1, -1), (1, 0), (1, 1)      # Bottom-left, Bottom, Bottom-right
+        ]
+
+        # First pass: Calculate the next state and encode it in the current board
+        for i in range(row):
+            for j in range(col):
+                liveNeighbors = 0
+
+                # Count live neighbors
+                for x, y in directions:
+                    if 0 <= i + x < row and 0 <= j + y < col:  # Check boundaries
+                        # Use % 10 to only consider the current state
+                        if (board[i + x][j + y]) % 10 == 1:
+                            liveNeighbors += 1
+
+                # Encode the next state by adding (liveNeighbors * 10)
+                # The next state is stored in the tens place
+                board[i][j] += (liveNeighbors * 10)
+
+        # Second pass: Decode the next state and update the board
+        for i in range(row):
+            for j in range(col):
+                currentState = board[i][j] % 10  # Extract the current state
+                nextState = board[i][j] // 10    # Extract the next state (encoded in tens place)
+
+                if currentState == 0:  # Dead cell
+                    # Dead cell becomes live if it has exactly 3 live neighbors
+                    if nextState == 3:
+                        board[i][j] = 1
+                    else:
+                        board[i][j] = 0
+                else:  # Live cell
+                    # Live cell dies if it has fewer than 2 or more than 3 live neighbors
+                    if nextState < 2 or nextState > 3:
+                        board[i][j] = 0
+                    else:  # Live cell survives if it has 2 or 3 live neighbors
+                        board[i][j] = 1
+
+```
+
+## Zigzag Conversion
+
+```python
+class Solution:
+    def convert(self, s: str, numRows: int) -> str:
+        # If there's only one row or the number of rows is greater than or equal
+        # to the length of the string, no zigzag is needed. Return the string as is.
+        if numRows == 1 or numRows >= len(s):
+            return s
+
+        # Initialize a list of lists to hold characters for each row
+        result = [[] for _ in range(numRows)]
+
+        # Start from the first row, and set the initial direction to 'down'
+        row, direction = 0, 1
+
+        # Iterate through each character in the string
+        for char in s:
+            # Append the character to the current row
+            result[row].append(char)
+
+            # Change direction at the top or bottom row
+            if row == 0:
+                direction = 1  # Move down
+            elif row == numRows - 1:
+                direction = -1  # Move up
+            
+            # Move to the next row in the current direction
+            row += direction
+
+        # Flatten the 2D list and join characters to form the final result string
+        return ('').join([char for line in result for char in line])
+
+```
+
+## Contains Duplicate II
+
+```python
+class Solution:
+    def containsNearbyDuplicate(self, nums: List[int], k: int) -> bool:
+        # Dictionary to store the last seen index of each number
+        num_dict = {}
+
+        for i, num in enumerate(nums):
+            # Check if the number exists in the dictionary and the index difference is within k
+            if num in num_dict and i - num_dict[num] <= k:
+                return True
+            
+            # Update the dictionary with the current index of the number
+            num_dict[num] = i
+
+        # No nearby duplicates found
+        return False
+
+```
+
+## Insert Interval
+
+```python
+class Solution:
+    def insert(self, intervals: List[List[int]], newInterval: List[int]) -> List[List[int]]:
+        if not intervals:
+            return [newInterval]  # Edge case: empty list
+
+        result = []
+
+        for i, interval in enumerate(intervals):
+            # If the current interval is completely before the newInterval
+            if interval[1] < newInterval[0]:
+                result.append(interval)
+            # If the current interval is completely after the newInterval
+            elif interval[0] > newInterval[1]:
+                # Add the newInterval and remaining intervals
+                return result + [newInterval] + intervals[i:]
+            # If intervals overlap, merge them into newInterval
+            else:
+                newInterval[0] = min(interval[0], newInterval[0])
+                newInterval[1] = max(interval[1], newInterval[1])
+
+        # Add the final merged newInterval
+        return result + [newInterval]
+
+```
+
+## Container With Most Water
+
+```python
+class Solution:
+    def maxArea(self, height: List[int]) -> int:
+        # Initialize two pointers at the ends of the list
+        left, right = 0, len(height) - 1
+
+        # Variable to keep track of the maximum area found
+        max_area = 0
+
+        # Iterate until the two pointers meet
+        while left < right:
+            # Calculate the current area using the shorter height
+            # and the distance between the two pointers
+            area = min(height[left], height[right]) * (right - left)
+
+            # Update the maximum area if the current area is larger
+            max_area = max(max_area, area)
+
+            # Move the pointer pointing to the shorter height inward
+            # This is because the limiting factor for the area is the shorter height
+            if height[left] <= height[right]:
+                left += 1
+            else:
+                right -= 1
+
+        # Return the maximum area found
+        return max_area
+
+```
+
+## Group Anagrams
+
+```python
+class Solution:
+    def groupAnagrams(self, strs: List[str]) -> List[List[str]]:
+        # If the input list is empty, return an empty list
+        if not strs:
+            return []
+
+        # Dictionary to group words by their sorted character string
+        group = {}
+
+        # Iterate over each word in the input list
+        for word in strs:
+            # Sort the characters of the word to create a key
+            # Anagrams will have the same sorted key
+            sorted_word = ''.join(sorted(word))
+
+            # If the sorted key is not in the dictionary, add it with the current word as the first value
+            if sorted_word not in group:
+                group[sorted_word] = [word]
+            else:
+                # If the key exists, append the current word to the list
+                group[sorted_word].append(word)
+
+        # Collect all grouped anagrams into a result list
+        result = []
+        for key, value in group.items():
+            # Append each group (list of anagrams) to the result
+            result.append(value)
+
+        # Return the final grouped anagrams
+        return result
+
+
+class Solution:
+    def groupAnagrams(self, strs: List[str]) -> List[List[str]]:
+        if not strs:
+            return []  # Return an empty list if input is empty
+        
+        group = {}  # Dictionary to group anagrams
+
+        for word in strs:
+            # Initialize character frequency count for the word
+            count = [0] * 26  # For 26 lowercase English letters
+            for char in word:
+                count[ord(char) - ord('a')] += 1
+
+            # Convert the frequency count into a hashable key
+            key = tuple(count)  # Use a tuple instead of string for better efficiency
+
+            # Group the words by their character frequency key
+            if key not in group:
+                group[key] = [word]
+            else:
+                group[key].append(word)
+
+        # Return the grouped anagrams
+        return list(group.values())
+
+```
+
+## Add Two Numbers
+
+```python
+class Solution:
+    def addTwoNumbers(self, l1: Optional[ListNode], l2: Optional[ListNode]) -> Optional[ListNode]:
+        # Initialize a dummy node to build the result list
+        # `dummy` serves as a placeholder for the start of the result linked list
+        dummy = ListNode()
+        result = dummy  # Keep a reference to the head of the result list
+
+        total, carry = 0, 0  # Initialize total and carry to 0
+
+        # Iterate as long as there are nodes in l1, l2, or a carry to process
+        while l1 or l2 or carry:
+            total = carry  # Start with the carry from the previous digit
+
+            # Add the value of the current node in l1, if it exists
+            if l1:
+                total += l1.val
+                l1 = l1.next  # Move to the next node in l1
+
+            # Add the value of the current node in l2, if it exists
+            if l2:
+                total += l2.val
+                l2 = l2.next  # Move to the next node in l2
+
+            # Calculate the value for the current digit and update the carry
+            val = total % 10  # The current digit
+            carry = total // 10  # Carry-over for the next digit
+
+            # Append the current digit to the result linked list
+            dummy.next = ListNode(val)
+            dummy = dummy.next  # Move the pointer to the newly created node
+
+        # Return the next node of the dummy, which is the head of the result list
+        return result.next
+
+```
+
+## Simplify Path
+
+```python
+class Solution:
+    def simplifyPath(self, path: str) -> str:
+        # Initialize a stack to simulate directory traversal
+        stack = []
+
+        # Pointer to iterate through the path string
+        current = 0
+
+        # Process the path character by character
+        while current < len(path):
+            # Skip consecutive slashes
+            if path[current] == '/':
+                current += 1
+            else:
+                # Identify the start of a directory/file name
+                start = current
+                # Find the end of the directory/file name (until the next '/')
+                while current < len(path) and path[current] != '/':
+                    current += 1
+                # Extract the directory/file name
+                stack.append(path[start:current])
+
+                # Process the extracted element
+                element = stack.pop()
+                if element == '.':
+                    # Ignore '.' as it refers to the current directory
+                    continue
+                elif element == '..':
+                    # '..' means go up one level; pop from the stack if it's not empty
+                    if stack:
+                        stack.pop()
+                else:
+                    # A valid directory/file name; push it onto the stack
+                    stack.append(element)
+
+        # Reconstruct the simplified canonical path
+        return '/' + ('/').join(stack)
+
+```
+
+## Merge Two Sorted Lists
+
+```python
+class Solution:
+    def mergeTwoLists(self, list1: Optional[ListNode], list2: Optional[ListNode]) -> Optional[ListNode]:
+        # Create a dummy node to serve as the starting point for the merged list
+        dummy = ListNode()
+        result = dummy  # Keep a reference to the head of the merged list
+
+        # Traverse both lists until one is exhausted
+        while list1 and list2:
+            if list1.val < list2.val:
+                # If list1's current node has a smaller value, append it to the merged list
+                dummy.next = list1
+                list1 = list1.next  # Move to the next node in list1
+            else:
+                # Otherwise, append list2's current node to the merged list
+                dummy.next = list2
+                list2 = list2.next  # Move to the next node in list2
+            dummy = dummy.next  # Move to the next position in the merged list
+
+        # Append any remaining nodes from list1 or list2
+        if list1:
+            dummy.next = list1
+        if list2:
+            dummy.next = list2
+
+        # Return the merged list, skipping the dummy node
+        return result.next
+
+```
+
+## Copy List with Random Pointer
+
+```python
+class Solution:
+    def copyRandomList(self, head: 'Optional[Node]') -> 'Optional[Node]':
+        if not head:
+            return None
+        
+        # Step 1: Create a mapping of original nodes to their copies
+        node_map = {}
+        cur = head
+        
+        # First pass: Copy all nodes (without setting `random` yet)
+        while cur:
+            node_map[cur] = Node(cur.val)
+            cur = cur.next
+        
+        # Step 2: Set the `next` and `random` pointers for the copied nodes
+        cur = head
+        while cur:
+            if cur.next:
+                node_map[cur].next = node_map[cur.next]
+            if cur.random:
+                node_map[cur].random = node_map[cur.random]
+            cur = cur.next
+        
+        # Step 3: Return the copied head node
+        return node_map[head]
+
+
+class Solution:
+    def copyRandomList(self, head: 'Optional[Node]') -> 'Optional[Node]':
+        if not head:
+            return None  # If the list is empty, return None
+        
+        # Step 1: Interleave copied nodes
+        # For each node in the original list, create a new node with the same value
+        # Insert the new node immediately after the original node
+        cur = head
+        while cur:
+            # Create a new node (deep copy) with the same value as the current node
+            new_node = Node(cur.val, cur.next)
+            # Insert the new node right after the current node
+            cur.next = new_node
+            # Move to the next original node
+            cur = new_node.next
+        
+        # Step 2: Assign random pointers
+        # For each copied node, set its random pointer based on the original node's random pointer
+        cur = head
+        while cur:
+            if cur.random:
+                # The copied node's random pointer should point to the copy of the original random node
+                cur.next.random = cur.random.next
+            # Move to the next original node (skipping the copied node)
+            cur = cur.next.next
+        
+        # Step 3: Separate the copied list from the original
+        # Restore the original list and extract the copied list
+        cur = head
+        copied_head = head.next  # The head of the copied list
+        while cur:
+            # Get the copied node
+            copied = cur.next
+            # Restore the original list by skipping the copied node
+            cur.next = copied.next
+            # Link the copied node to the next copied node
+            if copied.next:
+                copied.next = copied.next.next
+            # Move to the next original node
+            cur = cur.next
+        
+        return copied_head  # Return the head of the copied list
+
+```
+
+## Valid Sudoku
+
+```python
+class Solution:
+    def isValidSudoku(self, board: List[List[str]]) -> bool:
+        # Create hash sets for rows, columns, and subgrids
+        rows = [set() for _ in range(9)]
+        cols = [set() for _ in range(9)]
+        subgrids = [set() for _ in range(9)]  # Each subgrid indexed by (row // 3) * 3 + (col // 3)
+
+        for row in range(9):
+            for col in range(9):
+                num = board[row][col]
+                if num == '.':
+                    continue  # Skip empty cells
+                
+                # Calculate the index of the subgrid
+                subgrid_index = (row // 3) * 3 + (col // 3)
+
+                # Check for duplicates
+                if (
+                    num in rows[row] or
+                    num in cols[col] or
+                    num in subgrids[subgrid_index]
+                ):
+                    return False
+
+                # Add the number to the corresponding row, column, and subgrid
+                rows[row].add(num)
+                cols[col].add(num)
+                subgrids[subgrid_index].add(num)
+        
+        return True
+
+```
+
+## Min Stack
+
+```python
+class MinStack:
+    def __init__(self):
+        self.stack = []  # Stack to hold tuples of (value, current_min)
+
+    def push(self, val: int) -> None:
+        # If stack is empty, the current min is the value itself
+        current_min = val if not self.stack else min(val, self.stack[-1][1])
+        self.stack.append((val, current_min))  # Push value and updated min
+
+    def pop(self) -> None:
+        self.stack.pop()  # Remove the top element
+
+    def top(self) -> int:
+        return self.stack[-1][0]  # Return the top value of the stack
+
+    def getMin(self) -> int:
+        return self.stack[-1][1]  # Return the current minimum value
+
+```
+
+
+## Pow(x, n)
+
+```python
+class Solution:
+    def myPow(self, x: float, n: int) -> float:
+        # Handle base cases: x^0 = 1 and 0^n = 0 for n > 0
+        if x == 0:  # Any number 0 raised to a positive power is 0
+            return 0
+        if n == 0:  # Any number raised to the power of 0 is 1
+            return 1
+
+        # Define a helper function for recursive calculation of power
+        def halfPow(x: float, n: int) -> float:
+            if n == 0:  # Base case: power of 0 is 1
+                return 1
+            # Recursively calculate the result for n // 2
+            result = halfPow(x, n // 2)
+            # Combine results based on whether n is even or odd
+            return result * result if n % 2 == 0 else result * result * x
+
+        # Compute power for the absolute value of n
+        ans = halfPow(x, abs(n))
+        
+        # If n is negative, take the reciprocal of the result
+        return ans if n >= 0 else 1 / ans
+
+```
+
+## Remove Duplicates from Sorted List II
+
+```python
+class Solution:
+    def deleteDuplicates(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        # Base case: If the list is empty, return None
+        if not head:
+            return None
+
+        # Base case: If the list has only one node, return the head
+        if head and not head.next:
+            return head
+
+        # Create a dummy node that points to the head of the list
+        # This helps handle edge cases where the first few nodes are duplicates
+        dummy = ListNode(next=head)
+
+        # Initialize two pointers:
+        # 'slow' tracks the last non-duplicate node
+        # 'fast' scans ahead to identify duplicates
+        slow, fast = dummy, head.next
+
+        # Traverse the list until the 'fast' pointer reaches the end
+        while fast:
+            # Case 1: Current nodes are not duplicates
+            if fast and slow.next.val != fast.val:
+                slow = slow.next  # Move 'slow' pointer forward
+                fast = fast.next  # Move 'fast' pointer forward
+            else:
+                # Case 2: Current nodes are duplicates
+                # Skip all nodes with the same value as 'slow.next'
+                while fast and slow.next.val == fast.val:
+                    fast = fast.next
+                
+                # Remove the duplicates by pointing 'slow.next' to the node after the duplicates
+                slow.next = fast
+
+                # Move the 'fast' pointer forward if it's not None
+                fast = fast.next if fast else fast
+
+        # Return the new head of the list, which is the node after the dummy node
+        return dummy.next
+
+```
+
+## Rotate List
+
+```python
+class Solution:
+    def rotateRight(self, head: Optional[ListNode], k: int) -> Optional[ListNode]:
+        if not head or not head.next or k == 0:
+            return head
+
+        # Step 1: Find the length of the list
+        length = 1
+        cur = head
+        while cur.next:
+            cur = cur.next
+            length += 1
+
+        # Step 2: Normalize k
+        k = k % length
+        if k == 0:
+            return head  # No rotation needed
+
+        # Step 3: Find the new tail (n - k - 1) and new head (n - k)
+        cur = head
+        for _ in range(length - k - 1):
+            cur = cur.next
+
+        # Step 4: Rearrange pointers
+        new_head = cur.next
+        cur.next = None  # Break the list
+        tail = new_head
+        while tail and tail.next:
+            tail = tail.next
+        tail.next = head  # Connect the tail to the original head
+
+        return new_head
+
+```
+
+## Word Pattern
+
+```python
+class Solution:
+    def wordPattern(self, pattern: str, s: str) -> bool:
+        words = s.split()
+        # Length mismatch check
+        if len(pattern) != len(words):
+            return False
+        # Ensure one-to-one mapping using set comparison
+        return len(set(zip(pattern, words))) == len(set(pattern)) == len(set(words))
+
+```
+
+## Sort List
+
+```python
+class Solution:
+    def sortList(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        # Helper function to merge two sorted linked lists
+        def merge(left: Optional[ListNode], right: Optional[ListNode]) -> Optional[ListNode]:
+            dummy = ListNode()  # Dummy node to simplify the merge logic
+            cur = dummy
+
+            # Compare nodes from left and right lists, adding the smaller one to the merged list
+            while left and right:
+                if left.val < right.val:
+                    cur.next = left
+                    left = left.next
+                else:
+                    cur.next = right
+                    right = right.next
+                cur = cur.next
+
+            # Add any remaining nodes from either list
+            if left:
+                cur.next = left
+            if right:
+                cur.next = right
+
+            return dummy.next
+
+        # Helper function to find the middle of the linked list and split it into two halves
+        def getMid(head: Optional[ListNode]) -> Optional[ListNode]:
+            prev, slow, fast = None, head, head
+
+            # Use the slow and fast pointer approach to find the middle
+            while fast and fast.next:
+                prev = slow
+                slow = slow.next
+                fast = fast.next.next
+
+            # Disconnect the first half from the second half
+            prev.next = None
+
+            return slow
+
+        # Base case: if the list is empty or has a single node, it's already sorted
+        if not head or not head.next:
+            return head
+
+        # Split the list into two halves
+        mid = getMid(head)
+
+        # Recursively sort both halves
+        left = self.sortList(head)
+        right = self.sortList(mid)
+
+        # Merge the two sorted halves
+        return merge(left, right)
+
+```
+
+## Partition List
+
+```python
+class Solution:
+    def partition(self, head: Optional[ListNode], x: int) -> Optional[ListNode]:
+        if not head or not head.next:
+            return head
+
+        dummy = ListNode(next=head)  # Dummy node for managing the original list
+        prev, cur = dummy, head
+
+        new = ListNode()  # New list to hold nodes >= x
+        newCur = new
+
+        # Traverse the list and partition nodes
+        while cur:
+            if cur.val >= x:
+                # Remove the current node from the original list and add it to the new list
+                prev.next = cur.next
+                newCur.next = cur
+                cur = cur.next
+                newCur = newCur.next
+                newCur.next = None  # Disconnect the new node from the original list
+            else:
+                prev = cur
+                cur = cur.next
+
+        # Connect the end of the original list to the new list
+        prev.next = new.next
+
+        return dummy.next
+
+```
+
+## Factorial Trailing Zeroes
+
+```python
+class Solution:
+    def trailingZeroes(self, n: int) -> int:
+        # Initialize the result variable to count the number of trailing zeros
+        res = 0
+
+        # Loop to count factors of 5 in the numbers from 1 to n
+        while n != 0:
+            # Add the number of multiples of 5 to the result
+            res += n // 5
+
+            # Update n by dividing it by 5 to count higher powers of 5 (e.g., 25, 125)
+            n //= 5
+
+        # Return the total count of trailing zeros
+        return res
+
+```
+
+## Same Tree
+
+```python
+class Solution:
+    def isSameTree(self, p: Optional[TreeNode], q: Optional[TreeNode]) -> bool:
+         # If both nodes are None, the trees are the same
+        if not p and not q:
+            return True
+
+        # If one node is None and the other isn't, the trees are not the same
+        if not p or not q or p.val != q.val:
+            return False
+
+        # Recursively check if left subtrees and right subtrees are the same
+        left = self.isSameTree(p.left, q.left)
+        right = self.isSameTree(p.right, q.right)
+        
+        # Trees are the same only if both left and right subtrees are identical
+        return left and right 
+        
+```
+
+## Reverse Linked List II
+
+```python
+class Solution:
+    def reverseBetween(self, head: Optional[ListNode], left: int, right: int) -> Optional[ListNode]:
+        # If the list has only one node or no reversal is needed, return the head
+        if not head.next or left == right:
+            return head
+
+        # Create a dummy node to simplify edge cases (e.g., reversing from the head)
+        dummy = ListNode(0, next=head)
+        traversal = dummy
+
+        # Move traversal pointer to the node just before the 'left' position
+        for _ in range(left - 1):
+            traversal = traversal.next
+
+        # Start is the first node to reverse
+        start = traversal.next
+
+        # Reverse the sublist between 'left' and 'right'
+        prev, cur = None, start
+        for _ in range(right - left + 1):
+            nxt = cur.next  # Temporarily store the next node
+            cur.next = prev  # Reverse the pointer
+            prev = cur  # Move prev to the current node
+            cur = nxt  # Move cur to the next node
+
+        # Connect the reversed sublist back to the original list
+        traversal.next = prev  # Connect the node before 'left' to the new head of the reversed sublist
+        start.next = cur  # Connect the tail of the reversed sublist to the node after 'right'
+
+        # Return the updated list starting from the dummy node's next pointer
+        return dummy.next
+
+```
+
+## Find Peak Element
+
+```python
+class Solution:
+    def findPeakElement(self, nums: List[int]) -> int:
+        # Binary search to find a peak
+        left, right = 0, len(nums) - 1
+
+        while left < right:
+            mid = (left + right) // 2
+
+            # If mid is less than its right neighbor, move to the right half
+            if nums[mid] < nums[mid + 1]:
+                left = mid + 1
+            else:
+                # Otherwise, move to the left half (including mid)
+                right = mid
+
+        # At the end of the loop, left == right, pointing to a peak element
+        return left
+
+```
+
+## LRU Cache
+
+```python
+class ListNode:
+    def __init__(self, key: int = 0, value: int = 0, prev_node: Optional['ListNode'] = None, next_node: Optional['ListNode'] = None):
+        # Node to represent a doubly linked list element with key-value pair
+        self.key = key
+        self.value = value
+        self.prev = prev_node
+        self.next = next_node
+
+class LRUCache:
+    def __init__(self, capacity: int):
+        # Initialize the cache with a fixed capacity
+        self.capacity = capacity
+        self.size = 0
+        self.cache = {}  # Dictionary to map keys to nodes for O(1) access
+        
+        # Create dummy head and tail nodes for the doubly linked list
+        self.head = ListNode()
+        self.tail = ListNode()
+
+        # Connect head and tail
+        self.head.next = self.tail
+        self.tail.prev = self.head
+
+    def _remove_node(self, node: Optional[ListNode]) -> None:
+        """Remove a node from the doubly linked list."""
+        node.prev.next = node.next
+        node.next.prev = node.prev
+
+    def _add_tail(self, node: Optional[ListNode]) -> None:
+        """Add a node to the tail of the doubly linked list (most recently used)."""
+        self.tail.prev.next = node
+        node.prev = self.tail.prev
+        node.next = self.tail
+        self.tail.prev = node
+
+    def get(self, key: int) -> int:
+        """
+        Get the value of the key if it exists in the cache.
+        Move the accessed node to the tail as it is the most recently used.
+        """
+        if key not in self.cache:
+            return -1  # Key not found in the cache
+
+        # Access the node
+        node = self.cache[key]
+
+        # Move the node to the tail
+        self._remove_node(node)
+        self._add_tail(node)
+
+        return node.value
+
+    def put(self, key: int, value: int) -> None:
+        """
+        Add a key-value pair to the cache.
+        If the key already exists, update its value and move it to the tail.
+        If the cache exceeds capacity, remove the least recently used node.
+        """
+        if key in self.cache:
+            # Key exists: Update the value and move node to the tail
+            node = self.cache[key]
+            node.value = value
+
+            self._remove_node(node)
+            self._add_tail(node)
+        else:
+            # Key does not exist: Check capacity and add new node
+            if self.size == self.capacity:
+                # Remove the least recently used node (head.next)
+                lru_node = self.head.next
+                self.cache.pop(lru_node.key)
+                self._remove_node(lru_node)
+                self.size -= 1
+
+            # Create a new node and add it to the tail
+            node = ListNode(key, value)
+            self._add_tail(node)
+            self.cache[key] = node
+            self.size += 1
+
+```
+
+## Construct Quad Tree
+
+```python
+"""
+# Definition for a QuadTree node.
+class Node:
+    def __init__(self, val, isLeaf, topLeft, topRight, bottomLeft, bottomRight):
+        self.val = val
+        self.isLeaf = isLeaf
+        self.topLeft = topLeft
+        self.topRight = topRight
+        self.bottomLeft = bottomLeft
+        self.bottomRight = bottomRight
+"""
+
+class Solution:
+    def construct(self, grid: List[List[int]]) -> 'Node':
+        """
+        Constructs a QuadTree from a 2D grid of integers.
+        
+        :param grid: 2D list of integers (0 or 1) representing the input grid
+        :return: Root node of the QuadTree
+        """
+
+        def isSame(left: int, right: int, up: int, bottom: int) -> bool:
+            """
+            Checks if all elements in a subgrid are the same.
+            
+            :param left: Left column index of the subgrid
+            :param right: Right column index of the subgrid
+            :param up: Upper row index of the subgrid
+            :param bottom: Lower row index of the subgrid
+            :return: True if all elements are the same, False otherwise
+            """
+            firstElement = grid[up][left]  # Reference element to compare against
+
+            # Iterate through the subgrid
+            for row in grid[up:bottom+1]:
+                for element in row[left:right+1]:
+                    if firstElement != element:  # If any element differs, return False
+                        return False
+            return True
+
+        def constructQuad(left: int, right: int, up: int, bottom: int) -> 'Node':
+            """
+            Recursively constructs the QuadTree for a given subgrid.
+            
+            :param left: Left column index of the subgrid
+            :param right: Right column index of the subgrid
+            :param up: Upper row index of the subgrid
+            :param bottom: Lower row index of the subgrid
+            :return: Root node of the constructed QuadTree for the subgrid
+            """
+            node = Node()  # Create a new QuadTree node
+            node.val = grid[up][left]  # Set the value of the node to the top-left element of the subgrid
+
+            # If all elements in the subgrid are the same, make this node a leaf
+            if isSame(left, right, up, bottom):
+                node.isLeaf = True
+                return node
+
+            # Otherwise, split the grid into four quadrants and recursively construct each
+            node.isLeaf = False
+            mid_col = (left + right) // 2  # Midpoint for splitting columns
+            mid_row = (up + bottom) // 2  # Midpoint for splitting rows
+            
+            # Top-left quadrant
+            node.topLeft = constructQuad(left, mid_col, up, mid_row)
+            # Top-right quadrant
+            node.topRight = constructQuad(mid_col + 1, right, up, mid_row)
+            # Bottom-left quadrant
+            node.bottomLeft = constructQuad(left, mid_col, mid_row + 1, bottom)
+            # Bottom-right quadrant
+            node.bottomRight = constructQuad(mid_col + 1, right, mid_row + 1, bottom)
+            
+            return node  # Return the constructed node
+
+        # Start constructing the QuadTree for the entire grid
+        return constructQuad(0, len(grid[0]) - 1, 0, len(grid) - 1)
+
+```
+
+## Add Binary
+
+```python
+class Solution:
+    def addBinary(self, a: str, b: str) -> str:
+        carry = 0  # Initialize carry to 0
+        result = []  # List to store the result in reverse order
+
+        # Start from the last digit of both strings
+        m, n = len(a) - 1, len(b) - 1
+        
+        while m >= 0 or n >= 0 or carry:  # Process until all digits and carry are handled
+            # Extract current digits or use 0 if out of range
+            num1 = int(a[m]) if m >= 0 else 0
+            num2 = int(b[n]) if n >= 0 else 0
+            
+            # Calculate the total sum and carry
+            total = carry + num1 + num2
+            carry = total // 2  # Update carry for the next iteration
+            digit = total % 2  # Extract the binary digit to add to the result
+            
+            # Append the digit to the result
+            result.append(str(digit))
+            
+            # Move to the next left digits
+            m -= 1
+            n -= 1
+        
+        # Reverse the result since the binary digits were appended in reverse order
+        return ''.join(result[::-1])  # Join and reverse the result list
+
+```
+
+## Reverse Bits
+
+```python
+class Solution:
+    def reverseBits(self, n: int) -> int:
+        result = 0  # To store the reversed bits
+        
+        # Iterate over all 32 bits
+        for i in range(32):
+            # Extract the last bit of n
+            last_bit = n & 1
+            
+            # Shift result to the left to make space for the new bit
+            result = (result << 1) | last_bit
+            
+            # Right shift n to process the next bit
+            n >>= 1
+        
+        return result
+
+```
+
+e.g., Bitwise AND (&); Bitwise OR (|); Bitwise XOR (^); Bitwise NOT (~); Left Shift (<<); Right Shit (>>)
+
+```python
+class Solution:
+    def hammingWeight(self, n: int) -> int:
+        count = 0  # Initialize a counter to count the number of 1 bits
+        
+        # Iterate through all bits of the number
+        while n != 0:
+            # Extract the last (rightmost) bit using bitwise AND with 1
+            bit = n & 1
+            
+            # If the extracted bit is 1, increment the counter
+            if bit == 1:
+                count += 1
+            
+            # Right shift n by 1 to process the next bit
+            n >>= 1
+        
+        return count  # Return the total count of 1 bits
+
+```
+
+## Sum Root to Leaf Numbers
+
+```python
+class Solution:
+    def sumNumbers(self, root: Optional[TreeNode]) -> int:
+        def traversal(cur: Optional[TreeNode], num: int) -> None:
+            # Base case: If it's a leaf node, add the formed number to the result
+            if not cur.left and not cur.right:
+                result.append(num + cur.val)  # Add the current value to form the number
+                return
+
+            # If there is a left child, recurse on the left subtree
+            if cur.left:
+                # Append current node's value and shift to the left
+                traversal(cur.left, (num + cur.val) * 10)
+
+            # If there is a right child, recurse on the right subtree
+            if cur.right:
+                # Append current node's value and shift to the right
+                traversal(cur.right, (num + cur.val) * 10)
+
+        # Initialize an empty list to store all root-to-leaf numbers
+        result = []
+        traversal(root, 0)  # Start the traversal from the root with an initial value of 0
+        return sum(result)  # Return the sum of all the numbers
+
+
+class Solution:
+    def sumNumbers(self, root: Optional[TreeNode]) -> int:
+        def traversal(cur: Optional[TreeNode], num: int) -> int:
+            if not cur:
+                return 0
+
+            num = num * 10 + cur.val
+
+            # If it's a leaf node, return the current number
+            if not cur.left and not cur.right:
+                return num
+
+            # Recur for left and right subtrees and accumulate the sum
+            return traversal(cur.left, num) + traversal(cur.right, num)
+
+        return traversal(root, 0)
+
+```
+
+## Flatten Binary Tree to Linked List
+
+```python
+class Solution:
+    def __init__(self):
+        # This variable stores the previously visited node
+        self.prev = None
+
+    def flatten(self, root: Optional[TreeNode]) -> None:
+        """
+        Flatten the binary tree to a linked list in-place (right child represents the next node).
+        
+        The traversal order is **post-order**, starting from the right subtree, then the left subtree.
+        """
+        if not root:
+            return  # Base case: If the node is None, do nothing
+
+        # Recursively flatten the right subtree first
+        self.flatten(root.right)
+
+        # Recursively flatten the left subtree
+        self.flatten(root.left)
+
+        # Reorganize the current node:
+        # 1. The current node's right pointer points to the previous flattened node (self.prev).
+        # 2. The current node's left pointer is set to None (linked list only uses right pointers).
+        root.right = self.prev
+        root.left = None
+
+        # Update the previous node to the current node
+        self.prev = root
+
+```
+
+## Single Number
+
+```python
+"""
+a ^ a = 0
+a ^ 0 = a
+"""
+
+class Solution:
+    def singleNumber(self, nums: List[int]) -> int:
+        """
+        Find the single number in the list where every other number appears twice.
+        """
+        # Initialize the result with the first element
+        unique = nums[0]
+
+        # XOR all remaining elements in the list
+        for num in nums[1:]:
+            unique ^= num  # XOR operation: cancel out duplicate numbers
+
+        return unique  # Return the single non-duplicate number
+
+```
+
+## Binary Search Tree Iterator
+
+```python
+class BSTIterator:
+
+    def __init__(self, root: Optional[TreeNode]):
+        # Initialize the iterator with the root of the BST
+        self.cur = root  # Pointer to the current node
+        self.stack = []  # Stack to keep track of nodes for in-order traversal
+        
+
+    def next(self) -> int:
+        # Traverse to the leftmost node
+        while self.cur:
+            self.stack.append(self.cur)  # Push the current node onto the stack
+            self.cur = self.cur.left
+
+        # Pop the node from the stack (the next smallest element)
+        self.cur = self.stack.pop()
+        value = self.cur.val  # Store the value to return
+
+        # Move to the right subtree for the next call
+        self.cur = self.cur.right
+
+        return value
+
+
+    def hasNext(self) -> bool:
+        # There is a next element if either the stack is not empty
+        # or the current pointer is not null
+        return self.cur is not None or len(self.stack) > 0
+
+```
+
+## Binary Tree Zigzag Level Order Traversal
+
+```python
+class Solution:
+    def zigzagLevelOrder(self, root: Optional[TreeNode]) -> List[List[int]]:
+        if not root:
+            return []
+
+        result = []
+        flip = False  # Track the direction of traversal
+        traversal = deque([root])  # Queue for BFS
+
+        while traversal:
+            size = len(traversal)
+            level = deque()  # Use deque to construct level directly in the correct order
+
+            for _ in range(size):
+                node = traversal.popleft()
+
+                # Add node values in the correct order based on `flip`
+                if flip:
+                    level.appendleft(node.val)
+                else:
+                    level.append(node.val)
+
+                # Add child nodes to the queue
+                if node.left:
+                    traversal.append(node.left)
+                if node.right:
+                    traversal.append(node.right)
+
+            result.append(list(level))  # Convert deque to list for the result
+            flip = not flip  # Toggle the direction
+
+        return result
+        
+```
+
+## Find Minimum in Rotated Sorted Array
+
+```python
+class Solution:
+    def findMin(self, nums: List[int]) -> int:
+        # Initialize pointers to the start and end of the array
+        left, right = 0, len(nums) - 1
+
+        # Perform binary search
+        while left < right:
+            # Calculate the middle index
+            mid = (left + right) // 2
+
+            # Compare the middle element with the rightmost element
+            if nums[mid] > nums[right]:
+                # If nums[mid] is greater than nums[right],
+                # the minimum is in the right half of the array
+                left = mid + 1
+            else:
+                # If nums[mid] is less than or equal to nums[right],
+                # the minimum is in the left half (inclusive of mid)
+                right = mid
+
+        # When the loop exits, 'left' will point to the minimum element
+        return nums[left]
+
+```
+
+## Kth Smallest Element in a BST
+
+```python
+class Solution:
+    def kthSmallest(self, root: Optional[TreeNode], k: int) -> int:
+        # Initialize the current node pointer and a stack for iterative traversal
+        current = root
+        stack = []
+
+        # Perform in-order traversal
+        while current or stack:
+            # Traverse to the leftmost node
+            while current:
+                stack.append(current)
+                current = current.left
+
+            # Process the node at the top of the stack
+            current = stack.pop()
+            k -= 1  # Decrement k since we've visited one more node
+            
+            # If k becomes 0, we've found the k-th smallest element
+            if k == 0:
+                return current.val
+
+            # Move to the right subtree
+            current = current.right
+
+        # If the loop ends without finding the k-th smallest element, return -1
+        # This can happen if k is invalid (e.g., larger than the number of nodes)
+        return -1
+
+```
+
+## Kth Largest Element in an Array
+
+```python
+class Solution:
+    def findKthLargest(self, nums: List[int], k: int) -> int:
+        # Initialize an empty min-heap
+        min_heap = []
+
+        # Iterate through each number in the array
+        for num in nums:
+            # Push the current number onto the min-heap
+            heapq.heappush(min_heap, num)
+
+            # If the size of the heap exceeds k, remove the smallest element
+            # This ensures that the heap only contains the k largest elements
+            if len(min_heap) > k:
+                heapq.heappop(min_heap)
+
+        # The root of the heap (min_heap[0]) is the k-th largest element
+        return min_heap[0]
+
+```
+
+## Generate Parentheses
+
+```python
+class Solution:
+    def generateParenthesis(self, n: int) -> List[str]:
+        def backtracking(path: List[str], left: int, right: int) -> None:
+            # If the current combination is valid and complete, add it to the result
+            if left == right == n:
+                result.append(''.join(path))  # Join the path list to form the final string
+                return
+
+            # Add a '(' if we haven't used all left parentheses
+            if left < n:
+                path.append('(')
+                backtracking(path, left + 1, right)
+                path.pop()  # Backtrack: remove the last added '('
+
+            # Add a ')' if it won't invalidate the sequence
+            if right < left:
+                path.append(')')
+                backtracking(path, left, right + 1)
+                path.pop()  # Backtrack: remove the last added ')'
+
+        # Initialize result and start backtracking
+        result = []
+        backtracking([], 0, 0)
+        return result
+
+```
+
+## Snakes and Ladders
+
+```python
+class Solution:
+    def snakesAndLadders(self, board: List[List[int]]) -> int:
+        n = len(board)  # Size of the board (n x n)
+
+        # Dictionary to store the minimum steps required to reach each square
+        step_dict = {1: 0}
+        queue = deque([1])  # BFS queue initialized with the starting square
+
+        while queue:
+            cur = queue.popleft()
+
+            # If we reach the last square, return the number of steps
+            if cur == n * n:
+                return step_dict[cur]
+
+            # Explore all possible moves (dice rolls from 1 to 6)
+            for then in range(cur + 1, min(cur + 6, n * n) + 1):
+                # Convert 1D board position to 2D indices
+                row, col = self.get(then, n)
+
+                # If the square has a ladder or snake, update the destination
+                if board[row][col] != -1:
+                    then = board[row][col]
+
+                # If the square hasn't been visited, add it to the BFS queue
+                if then not in step_dict:
+                    step_dict[then] = step_dict[cur] + 1
+                    queue.append(then)
+
+        # If the queue is exhausted and we didn't reach the last square, return -1
+        return -1
+
+    def get(self, step: int, n: int) -> Tuple[int, int]:
+        """
+        Convert a 1-based board position to 2D indices (row, col).
+        Handles the alternating direction of rows in the board.
+        """
+        row = (n - 1) - (step - 1) // n  # Calculate the row (bottom to top)
+        
+        # Determine the column based on the direction of the row
+        if row % 2 == n % 2:
+            col = (n - 1) - (step - 1) % n
+        else:
+            col = (step - 1) % n
+
+        return row, col
+
+```
+
+## Minimum Genetic Mutation
+
+```python
+class Solution:
+    def minMutation(self, startGene: str, endGene: str, bank: List[str]) -> int:
+        # Convert bank to a set for O(1) lookups
+        bank = set(bank)
+
+        # If the end gene is not in the bank, return -1
+        if endGene not in bank:
+            return -1
+
+        # BFS initialization
+        queue = deque([(startGene, 0)])  # (current gene, mutation steps)
+        visited = set([startGene])      # Set of visited genes
+
+        while queue:
+            gene, step = queue.popleft()
+
+            # If we reach the end gene, return the number of steps
+            if gene == endGene:
+                return step
+
+            # Generate all possible mutations
+            for i in range(len(gene)):  # Iterate through all positions
+                for mutation in "ACGT":
+                    # Skip if the mutation is the same as the current character
+                    if mutation == gene[i]:
+                        continue
+                    
+                    # Create the new gene by mutating the i-th character
+                    new_gene = gene[:i] + mutation + gene[i + 1:]
+
+                    # If the new gene is valid and not visited, add to the queue
+                    if new_gene not in visited and new_gene in bank:
+                        queue.append((new_gene, step + 1))
+                        visited.add(new_gene)  # Mark as visited
+
+        # If no path to the end gene was found, return -1
+        return -1
+
+```
+
+## Find K Pairs with Smallest Sums
+
+```python
+class Solution:
+    def kSmallestPairs(self, nums1: List[int], nums2: List[int], k: int) -> List[List[int]]:
+        # Handle edge cases where input arrays are empty or k is zero
+        if not nums1 or not nums2 or k == 0:
+            return []
+
+        # Min-heap to store pairs with their sums, initialized as empty
+        heap = []
+        result = []  # List to store the resulting k pairs
+
+        # Initialize the heap with the smallest elements from nums1 paired with the first element of nums2
+        # Only take up to the first k elements from nums1 to ensure efficiency
+        for i in range(min(k, len(nums1))):
+            # Push tuples of the form (sum, index in nums1, index in nums2) into the heap
+            heapq.heappush(heap, (nums1[i] + nums2[0], i, 0))
+
+        # Extract the k smallest pairs from the heap
+        while heap and len(result) < k:
+            # Pop the smallest sum pair from the heap
+            curr_sum, i, j = heapq.heappop(heap)
+            # Add the corresponding pair (nums1[i], nums2[j]) to the result
+            result.append([nums1[i], nums2[j]])
+
+            # If there's a next element in nums2 for the current nums1[i], push it into the heap
+            if j + 1 < len(nums2):
+                # Push the new pair (sum, i, j+1) into the heap
+                heapq.heappush(heap, (nums1[i] + nums2[j + 1], i, j + 1))
+
+        # Return the result containing the k smallest pairs
+        return result
+
+```
+
+## Single Number II
+
+```python
+class Solution:
+    def singleNumber(self, nums: List[int]) -> int:
+        # Initialize an array to count the bits at each of the 32 positions
+        bits = [0] * 32
+       
+        # Iterate through each number in the input list
+        for num in nums:
+            for i in range(32):
+                # Extract the i-th bit of the number and add it to the corresponding position in 'bits'
+                bits[i] += (num >> i) & 1
+
+        # Variable to store the result
+        ans = 0
+        for i in range(32):
+            # Reconstruct the number by taking modulo 3 of each bit position
+            # If bits[i] % 3 is 1, this bit belongs to the single number
+            ans |= (bits[i] % 3) << i
+
+        # Handle negative numbers (convert from unsigned 32-bit representation to signed integer)
+        # If the 31st bit (sign bit) is set, the number is negative
+        return ans if ans < 2 ** 31 else ans - 2 ** 32
+
+```
+
+## Number of Islands
+
+```python
+class Solution:
+    """
+    DFS
+    """
+    def numIslands(self, grid: List[List[str]]) -> int:
+        def dfs(row: int, col: int) -> None:
+            # Check boundary conditions
+            if row < 0 or row >= len(grid) or col < 0 or col >= len(grid[0]):
+                return
+            
+            # Stop if the cell is water ("0")
+            if grid[row][col] == "0":
+                return
+
+            # Mark the cell as visited
+            grid[row][col] = "0"
+
+            # Explore all four directions
+            for x, y in directions:
+                dfs(row + x, col + y)
+
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # Directions: up, down, left, right
+        num = 0  # Number of islands
+        m, n = len(grid), len(grid[0])  # Grid dimensions
+
+        for row in range(m):
+            for col in range(n):
+                if grid[row][col] == "1":  # Found a new island
+                    num += 1  # Increment the island count
+                    dfs(row, col)  # Start DFS to mark the entire island
+
+        return num
+
+
+class Solution:
+    """
+    BFS
+    """
+    def numIslands(self, grid: List[List[str]]) -> int:
+        num = 0  # Count of islands
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # Possible movement directions
+        m, n = len(grid), len(grid[0])  # Dimensions of the grid
+
+        # Iterate through all cells in the grid
+        for row in range(m):
+            for col in range(n):
+                # If the current cell is land, start BFS to explore the island
+                if grid[row][col] == "1":
+                    num += 1  # Increment the island count
+                    queue = deque([(row, col)])  # Initialize the BFS queue
+                    
+                    # Perform BFS to visit all connected land cells
+                    while queue:
+                        x, y = queue.popleft()
+                        grid[x][y] = "0"  # Mark the cell as visited
+                        
+                        # Explore all four directions
+                        for dx, dy in directions:
+                            nx, ny = x + dx, y + dy  # Calculate neighbor coordinates
+                            
+                            # Check bounds and whether the neighbor is land
+                            if 0 <= nx < m and 0 <= ny < n and grid[nx][ny] == "1":
+                                queue.append((nx, ny))  # Add neighbor to the queue
+                                grid[nx][ny] = "0"  # Mark the neighbor as visited
+
+        return num  # Return the total number of islands
+
+```
+
+## Surrounded Regions
+
+```python
+class Solution:
+    def solve(self, board: List[List[str]]) -> None:
+        """
+        Do not return anything, modify board in-place instead.
+        """
+        def bfs(row: int, col: int):
+            # Initialize a queue for BFS and mark the starting cell as visited
+            queue = deque([(row, col)])
+            board[row][col] = 'T'  # Temporarily mark the cell to avoid revisiting
+
+            while queue:
+                r, c = queue.popleft()
+               
+                # Explore all four possible directions (up, down, left, right)
+                for x, y in directions:
+                    if 0 <= r + x < m and 0 <= c + y < n and board[r + x][c + y] == 'O':
+                        queue.append((r + x, c + y))  # Add the neighbor to the queue
+                        board[r + x][c + y] = 'T'  # Mark as visited
+
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # Define movement directions
+        m, n = len(board), len(board[0])  # Dimensions of the board
+
+        # Step 1: Start BFS from all border 'O' cells and mark them as 'T'
+        for row in range(m):
+            for col in range(n):
+                # Only start BFS for 'O' cells on the border
+                if (row == 0 or row == m - 1 or col == 0 or col == n - 1) and board[row][col] == 'O':
+                    bfs(row, col)
+
+        # Step 2: Convert all remaining 'O' cells to 'X' (these are the captured regions)
+        for row in range(m):
+            for col in range(n):
+                if board[row][col] == 'O':
+                    board[row][col] = 'X'
+
+        # Step 3: Convert all 'T' cells back to 'O' (these are the border-connected regions)
+        for row in range(m):
+            for col in range(n):
+                if board[row][col] == 'T':
+                    board[row][col] = 'O'
+
+```
+
+## Trie
+
+```python
+class Trie:
+
+    def __init__(self):
+        # Initialize the root of the Trie as an empty dictionary
+        self.root = {}
+        
+
+    def insert(self, word: str) -> None:
+        """
+        Insert a word into the Trie.
+        Each character in the word is added as a key in nested dictionaries.
+        The end of the word is marked with a special key '#'.
+        """
+        cur = self.root
+        for char in word:
+            # Create a new dictionary for the character if it doesn't exist
+            if char not in cur:
+                cur[char] = {}
+            cur = cur[char]  # Move to the next level
+        cur['#'] = True  # Mark the end of the word
+        
+
+    def search(self, word: str) -> bool:
+        """
+        Search for a word in the Trie.
+        Returns True if the word exists and is marked as complete with '#'.
+        """
+        cur = self.find(word)  # Use the helper method to navigate to the word
+        return True if cur and '#' in cur else False
+        
+
+    def startsWith(self, prefix: str) -> bool:
+        """
+        Check if any word in the Trie starts with the given prefix.
+        Returns True if the prefix exists in the Trie.
+        """
+        return True if self.find(prefix) else False 
+
+
+    def find(self, prefix: str) -> dict:
+        """
+        Helper function to navigate through the Trie for a given prefix.
+        Returns the last node corresponding to the prefix if it exists, otherwise None.
+        """
+        cur = self.root
+        for char in prefix:
+            # If the character is not in the current level, return None
+            if char not in cur:
+                return None
+            cur = cur[char]  # Move to the next level
+        return cur  # Return the final node corresponding to the prefix
+
+```
+
+## Clone Graph
+
+```python
+"""
+BFS
+"""
+class Solution:
+    def cloneGraph(self, node: Optional['Node']) -> Optional['Node']:
+        # If the input graph is empty, return None
+        if not node:
+            return None
+
+        # A mapping to store the original node to its cloned counterpart
+        mapping = {}
+        
+        # Use a queue for Breadth-First Search (BFS) traversal
+        queue = deque([node])
+        
+        # Create the clone for the input node and add it to the mapping
+        mapping[node] = Node(node.val)
+
+        # Perform BFS
+        while queue:
+            # Get the next node from the queue
+            current = queue.popleft()
+
+            # Traverse all neighbors of the current node
+            for neighbor in current.neighbors:
+                # If the neighbor has not been cloned yet
+                if neighbor not in mapping:
+                    # Clone the neighbor and add it to the mapping
+                    queue.append(neighbor)
+                    mapping[neighbor] = Node(neighbor.val)
+                
+                # Append the cloned neighbor to the current node's clone's neighbors
+                mapping[current].neighbors.append(mapping[neighbor])
+
+        # Return the clone of the starting node
+        return mapping[node]
+
+
+"""
+DFS
+"""
+
+class Solution:
+    def cloneGraph(self, node: Optional['Node']) -> Optional['Node']:
+        # Recursive function to perform DFS and clone the graph
+        def dfs(node: Optional['Node']) -> Optional['Node']:
+            # Base case: If the node is None, return None
+            if not node:
+                return None
+
+            # If the node has already been cloned, return the clone
+            if node in mapping:
+                return mapping[node]
+
+            # Create a clone of the current node
+            clone = Node(node.val)
+            # Store the clone in the mapping to avoid duplication
+            mapping[node] = clone
+
+            # Recursively clone all the neighbors
+            for neighbor in node.neighbors:
+                clone.neighbors.append(dfs(neighbor))
+
+            # Return the cloned node
+            return clone
+
+        # Dictionary to map original nodes to their cloned counterparts
+        mapping = {}
+        
+        # Start the cloning process from the input node
+        return dfs(node)
+
+```
+
+## Reverse Nodes in k-Group
+
+```python
+class Solution:
+    def reverseKGroup(self, head: Optional[ListNode], k: int) -> Optional[ListNode]:
+        # If the list is empty, return None
+        if not head:
+            return None
+
+        # Dummy node to simplify edge case handling (e.g., reversing the first group)
+        dummy = ListNode(val=0, next=head)
+
+        # Slow and fast pointers for group traversal
+        slow = fast = dummy
+        while fast:
+            # Move the fast pointer ahead by k+1 nodes to ensure there are enough nodes to reverse
+            fast = slow
+            for _ in range(k + 1):
+                if not fast:  # If there are fewer than k nodes, return the processed list
+                    return dummy.next
+                fast = fast.next
+
+            # Reverse the k nodes between slow and fast pointers
+            prev, cur = None, slow.next
+            start = slow.next  # Start node of the current group
+            while cur != fast:  # Reverse until reaching the fast pointer
+                then = cur.next  # Store the next node
+                cur.next = prev  # Reverse the current node's pointer
+                prev = cur  # Move prev forward
+                cur = then  # Move cur forward
+
+            # Connect the reversed group to the rest of the list
+            slow.next = prev  # Connect the previous group to the start of the reversed group
+            start.next = cur  # Connect the end of the reversed group to the next group
+            slow = start  # Move slow to the start node (which is now the end of the reversed group)
+
+        return dummy.next  # Return the new head of the list
+
+```
+
+## Evaluate Division
+
+```python
+class Solution:
+    def calcEquation(self, equations: List[List[str]], values: List[float], queries: List[List[str]]) -> List[float]:
+        def dfs(num1: str, num2: str, visited: set) -> float:
+            # If the starting variable is not in the graph, return -1.0
+            if num1 not in graph:
+                return -1.0
+
+            # Base case: If num1 and num2 are the same, return 1.0 (self-division)
+            if num1 == num2:
+                return 1.0
+
+            visited.add(num1)  # Mark the current node as visited
+
+            # Explore neighbors
+            for neighbor, value in graph[num1].items():
+                if neighbor in visited:  # Skip already visited nodes
+                    continue
+                if neighbor == num2:  # Direct connection to the target
+                    return value
+                # Recursive DFS call
+                ans = dfs(neighbor, num2, visited)
+                if ans != -1.0:  # If a valid path is found
+                    return value * ans
+
+            return -1.0  # No valid path found
+
+        # Step 1: Build the graph
+        graph = {}
+        for i, (numerator, denominator) in enumerate(equations):
+            if numerator not in graph:
+                graph[numerator] = {}
+            if denominator not in graph:
+                graph[denominator] = {}
+            graph[numerator][denominator] = values[i]
+            graph[denominator][numerator] = 1.0 / values[i]
+
+        # Step 2: Process queries
+        result = []
+        for num1, num2 in queries:
+            # Check if both variables are in the graph
+            if num1 not in graph or num2 not in graph:
+                result.append(-1.0)  # If either variable is missing, result is -1.0
+            else:
+                visited = set()  # Fresh visited set for each query
+                result.append(dfs(num1, num2, visited))
+
+        return result
+
+```
+
+## N-Queens II
+
+```python
+class Solution:
+    def __init__(self):
+        # Initialize the result to count the number of valid N-Queens solutions
+        self.result = 0
+
+    def totalNQueens(self, n: int) -> int:
+        def check(board: List[List[int]], row: int, col: int) -> bool:
+            """
+            Check if placing a queen at (row, col) is valid.
+            A position is valid if there are no other queens:
+            - In the same column
+            - On the upper-left diagonal
+            - On the upper-right diagonal
+            """
+            # Check the same column in rows above
+            for i in range(row - 1, -1, -1):
+                if board[i][col] == 1:
+                    return False
+            
+            # Check the upper-left diagonal
+            for i, j in zip(range(row - 1, -1, -1), range(col - 1, -1, -1)):
+                if board[i][j] == 1:
+                    return False
+
+            # Check the upper-right diagonal
+            for i, j in zip(range(row - 1, -1, -1), range(col + 1, n)):
+                if board[i][j] == 1:
+                    return False
+            
+            # If all checks pass, the position is valid
+            return True
+
+        def backtracing(board: List[List[int]], row: int):
+            """
+            Try to place queens row by row using backtracking.
+            - If all rows are filled (row == n), count it as a valid solution.
+            - Otherwise, try placing a queen in each column of the current row
+              and recursively solve the problem for the next row.
+            """
+            if row == n:  # Base case: all rows are filled
+                self.result += 1  # Found a valid configuration
+                return
+
+            # Try placing a queen in each column of the current row
+            for col in range(n):
+                if check(board, row, col):  # Check if placing at (row, col) is valid
+                    board[row][col] = 1  # Place the queen
+                    backtracing(board, row + 1)  # Move to the next row
+                    board[row][col] = 0  # Backtrack: remove the queen
+
+        # Initialize the board as an n x n grid filled with zeros (no queens placed)
+        board = [[0] * n for _ in range(n)]
+        
+        # Start the backtracking process from the first row
+        backtracing(board, 0)
+
+        # Return the total number of valid solutions
+        return self.result
+
+
+class Solution:
+    def totalNQueens(self, n: int) -> int:
+        """
+        Key Ideas:
+        - A queen can attack another if they share the same row, column, or diagonal.
+        - To track conflicts:
+          - Use `cols` to store columns where queens are placed.
+          - Use `diagonals` to store major diagonals, identified by `row - col`.
+          - Use `anti_diagonals` to store minor diagonals, identified by `row + col`.
+        """
+
+        def backtrack(row: int):
+            if row == n:  # All queens are placed
+                self.result += 1
+                return
+            
+            for col in range(n):
+                # Skip invalid positions based on column and diagonal constraints
+                if col in cols or (row - col) in diagonals or (row + col) in anti_diagonals:
+                    continue
+                
+                # Place the queen
+                cols.add(col)
+                diagonals.add(row - col)
+                anti_diagonals.add(row + col)
+                
+                # Recurse to the next row
+                backtrack(row + 1)
+                
+                # Remove the queen (backtrack)
+                cols.remove(col)
+                diagonals.remove(row - col)
+                anti_diagonals.remove(row + col)
+        
+        # Initialize tracking sets
+        cols = set()  # Tracks columns with queens
+        diagonals = set()  # Tracks major diagonals (row - col)
+        anti_diagonals = set()  # Tracks minor diagonals (row + col)
+        
+        # Initialize result counter
+        self.result = 0
+        
+        # Start backtracking from the first row
+        backtrack(0)
+        
+        return self.result
+
+
+```
+
+## Triangle
+
+```python
+class Solution:
+    def minimumTotal(self, triangle: List[List[int]]) -> int:
+        # Start from the second-to-last row and move upwards
+        for row in range(len(triangle) - 2, -1, -1):
+            for col in range(len(triangle[row])):
+                # Update the current cell with the minimum path sum
+                triangle[row][col] += min(triangle[row + 1][col], triangle[row + 1][col + 1])
+
+        # The top element now contains the minimum path sum
+        return triangle[0][0]
+
+
+class Solution:
+    def minimumTotal(self, triangle: List[List[int]]) -> int:
+        # Initialize dp with the last row of the triangle
+        dp = triangle[-1][:]
+
+        # Process rows from the second-to-last to the top
+        for row in range(len(triangle) - 2, -1, -1):
+            for col in range(len(triangle[row])):
+                # Update dp[col] with the minimum path sum for the current position
+                dp[col] = triangle[row][col] + min(dp[col], dp[col + 1])
+
+        # The result is stored at the top of dp
+        return dp[0]
+        
+```
+
+## Substring with Concatenation of All Words
+
+```python
+from typing import List
+
+class Solution:
+    def findSubstring(self, s: str, words: List[str]) -> List[int]:
+        # Helper function to compare two dictionaries for equality
+        def isSame(dict1: dict, dict2: dict) -> bool:
+            for key, value in dict2.items():
+                if key not in dict1:  # Key missing in dict1
+                    return False
+                if value != dict1[key]:  # Value mismatch
+                    return False
+            return True
+
+        result = []  # List to store starting indices of valid substrings
+        word_len = len(words[0])  # Length of each word in the words list
+        word_count = len(words)  # Total number of words
+        substring_size = word_len * word_count  # Total size of the concatenated substring
+
+        # Create a frequency map of the words in the list
+        word_map = {}
+        for word in words:
+            word_map[word] = word_map.get(word, 0) + 1
+
+        # Iterate through all possible starting positions modulo word_len
+        for i in range(word_len):
+            current_map = {}  # Current frequency map of words in the window
+            start, end = i, i  # Sliding window pointers
+            match_count = 0  # Count of matched words in the current window
+
+            # Slide the window across the string
+            while end + word_len <= len(s):
+                candidate = s[end:end + word_len]  # Extract a word of length word_len
+                end += word_len  # Move the end pointer
+
+                if candidate in word_map:
+                    # If the word is valid, add it to the current map
+                    current_map[candidate] = current_map.get(candidate, 0) + 1
+                    match_count += 1
+
+                    # If the number of matched words equals the number of words in the list
+                    if match_count == word_count:
+                        # Check if the frequency maps match
+                        if isSame(current_map, word_map):
+                            result.append(start)  # Add the start index to the result
+                        
+                        # Adjust the window to remove the leftmost word
+                        start_word = s[start:start + word_len]
+                        current_map[start_word] -= 1
+                        match_count -= 1
+                        start = start + word_len
+                else:
+                    # If the candidate word is not valid, reset the window
+                    current_map.clear()
+                    match_count = 0
+                    start = end  # Move the start pointer to the end
+
+        return result
+
+```
