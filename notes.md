@@ -1757,6 +1757,40 @@ class Solution:
 
 ```
 
+## Construct Binary Tree from Preorder and Inorder Traversal
+
+```python
+class Solution:
+    def buildTree(self, preorder: List[int], inorder: List[int]) -> Optional[TreeNode]:
+        def helper(pre_start, pre_end, in_start, in_end) -> Optional[TreeNode]:
+            if pre_start > pre_end or in_start > in_end:
+                return None
+
+            # Get the root value from preorder
+            value = preorder[pre_start]
+            # Find the root's index in inorder
+            index = inorder_map[value]
+
+            # Create the TreeNode for the root
+            node = TreeNode(val=value)
+
+            # Number of nodes in the left subtree
+            left_tree_size = index - in_start
+
+            # Recursively build left and right subtrees
+            node.left = helper(pre_start+1, pre_start+left_tree_size, in_start, index-1)
+            node.right = helper(pre_start+left_tree_size+1, pre_end, index+1, in_end)
+
+            return node
+
+        # Precompute the index map for inorder to achieve O(1) lookups
+        inorder_map = {value: index for index, value in enumerate(inorder)}
+        
+        # Initialize the helper function with full range
+        return helper(0, len(preorder)-1, 0, len(inorder)-1)
+
+```
+
 ## Maximum Binary Tree
 
 **Solution**:
@@ -8731,6 +8765,1004 @@ class Solution:
                     current_map.clear()
                     match_count = 0
                     start = end  # Move the start pointer to the end
+
+        return result
+
+```
+
+## Course Schedule
+
+```python
+class Solution:
+    def canFinish(self, numCourses: int, prerequisites: List[List[int]]) -> bool:
+        def dfs(node: int) -> bool:
+            # If the node is currently being visited, a cycle is detected
+            if node in visit and visit[node] == 0:
+                return False
+
+            # If the node has already been fully processed, skip it
+            if node in visit and visit[node] == 1:
+                return True
+
+            # Mark the node as being visited
+            visit[node] = 0
+            for neighbor in graph[node]:
+                # Recursively visit all neighbors; if any detects a cycle, return False
+                if not dfs(neighbor):
+                    return False
+
+            # Mark the node as fully processed
+            visit[node] = 1
+            return True
+
+        # Build the graph as an adjacency list
+        graph = {i: [] for i in range(numCourses)}
+        for course, prerequisite in prerequisites:
+            graph[prerequisite].append(course)
+
+        # Dictionary to track visit state:
+        # 0 = visiting, 1 = fully processed, not in `visit` = unvisited
+        visit = {}
+
+        # Perform DFS for all nodes in the graph
+        for key in graph:
+            if not dfs(key):
+                return False  # If any DFS call detects a cycle, return False
+
+        # If no cycles are found, all courses can be completed
+        return True
+
+```
+
+## Course Schedule II
+
+```python
+from collections import defaultdict, deque
+
+class Solution:
+    def findOrder(self, numCourses: int, prerequisites: List[List[int]]) -> List[int]:
+        # DFS function
+        def dfs(course: int) -> bool:
+            if visit[course] == VISITING:  # Cycle detected
+                return False
+            if visit[course] == PROCESSED:  # Already processed
+                return True
+
+            # Mark as visiting
+            visit[course] = VISITING
+            for neighbor in graph[course]:
+                if not dfs(neighbor):
+                    return False
+
+            # Mark as processed and add to result
+            visit[course] = PROCESSED
+            result.appendleft(course)  # Append to the left for topological order
+            return True
+
+        # Edge case: no prerequisites
+        if not prerequisites:
+            return list(range(numCourses))
+        
+        # Constants for visit states
+        UNVISITED, VISITING, PROCESSED = 0, 1, 2
+        
+        # Build the graph
+        graph = defaultdict(list)
+        for course, prerequisite in prerequisites:
+            graph[prerequisite].append(course)
+
+        # Initialize visit states and result
+        visit = [UNVISITED] * numCourses
+        result = deque()  # Use deque for efficient prepending
+
+        # Perform DFS for all courses
+        for course in range(numCourses):
+            if visit[course] == UNVISITED:
+                if not dfs(course):
+                    return []  # Return empty if a cycle is detected
+
+        return list(result)
+
+```
+
+## Minimum Window Substring
+
+```python
+class Solution:
+    def minWindow(self, s: str, t: str) -> str:
+        # If the source string is shorter than the target string, no valid window can exist
+        if len(s) < len(t):
+            return ""
+
+        # Create a frequency map for characters in t
+        need_map = Counter(t)
+        # Number of unique characters in t that need to be fully matched in the window
+        required = len(need_map)
+
+        # Initialize pointers for the sliding window
+        left = 0
+        # Tracks how many unique characters in t are currently fully matched in the window
+        formed = 0
+        # Dictionary to track characters in the current window
+        window_map = {}
+
+        # Variable to store the smallest window substring
+        min_window = ""
+        
+        # Iterate through the source string with the right pointer
+        for right in range(len(s)):
+            char = s[right]
+            # Add the current character to the window map
+            window_map[char] = window_map.get(char, 0) + 1
+
+            # If the character matches the required count in need_map, increment `formed`
+            if char in need_map and window_map[char] == need_map[char]:
+                formed += 1
+
+            # Try to contract the window from the left while it remains valid
+            while left <= right and formed == required:
+                char = s[left]
+
+                # Update the minimum window if this window is smaller
+                if min_window == "":
+                    min_window = s[left:right+1]
+                else:
+                    min_window = s[left:right+1] if right - left + 1 < len(min_window) else min_window
+
+                # Remove the leftmost character from the window
+                window_map[char] -= 1
+                # If removing the character breaks the validity of the window, decrement `formed`
+                if char in need_map and window_map[char] < need_map[char]:
+                    formed -= 1
+
+                # Move the left pointer forward to shrink the window
+                left += 1
+
+        # Return the smallest window found, or an empty string if no valid window exists
+        return min_window
+
+```
+
+## Minimum Path Sum
+
+```python
+class Solution:
+    def minPathSum(self, grid: List[List[int]]) -> int:
+        m, n = len(grid), len(grid[0])
+        
+        # Use a single-row DP array to save space
+        dp = [0] * n
+        dp[0] = grid[0][0]  # Initialize the first cell
+        
+        # Fill the first row
+        for col in range(1, n):
+            dp[col] = dp[col - 1] + grid[0][col]
+        
+        # Process the remaining rows
+        for row in range(1, m):
+            dp[0] += grid[row][0]  # Update the first column
+            for col in range(1, n):
+                dp[col] = min(dp[col], dp[col - 1]) + grid[row][col]
+        
+        return dp[-1]
+
+```
+
+## Search in Rotated Sorted Array
+
+```python
+class Solution:
+    def search(self, nums: List[int], target: int) -> int:
+        # Helper function for binary search
+        def binarySearch(arr: List[int], target: int, offset: int = 0) -> int:
+            left, right = 0, len(arr) - 1
+            while left <= right:
+                mid = (left + right) // 2
+                if arr[mid] == target:
+                    return mid + offset
+                elif arr[mid] < target:
+                    left = mid + 1
+                else:
+                    right = mid - 1
+            return -1
+
+        # Edge case: single element array
+        if len(nums) == 1:
+            return 0 if nums[0] == target else -1
+
+        # Find the pivot where the rotation occurs
+        left, right = 0, len(nums) - 1
+        while left < right:
+            mid = (left + right) // 2
+            if nums[mid] > nums[right]:
+                left = mid + 1
+            else:
+                right = mid
+
+        # Left now points to the pivot
+        pivot = left
+
+        # Perform binary search in both subarrays divided by the pivot
+        left_result = binarySearch(nums[:pivot], target, offset=0)
+        right_result = binarySearch(nums[pivot:], target, offset=pivot)
+
+        # Return the result
+        if left_result != -1:
+            return left_result
+        if right_result != -1:
+            return right_result
+        return -1
+
+
+class Solution:
+    def search(self, nums: List[int], target: int) -> int:
+        left, right = 0, len(nums) - 1
+
+        while left <= right:
+            mid = (left + right) // 2
+
+            # If the target is found, return its index
+            if nums[mid] == target:
+                return mid
+
+            # Determine which half is sorted
+            if nums[left] <= nums[mid]:  # Left half is sorted
+                if nums[left] <= target < nums[mid]:  # Target is in the left half
+                    right = mid - 1
+                else:  # Target is in the right half
+                    left = mid + 1
+            else:  # Right half is sorted
+                if nums[mid] < target <= nums[right]:  # Target is in the right half
+                    left = mid + 1
+                else:  # Target is in the left half
+                    right = mid - 1
+
+        # If we exit the loop, the target is not in the array
+        return -1
+
+
+```
+
+## Interleaving String
+
+```python
+class Solution:
+    def isInterleave(self, s1: str, s2: str, s3: str) -> bool:
+        # If the lengths of s1 and s2 combined do not match the length of s3,
+        # it is impossible for s3 to be an interleaving of s1 and s2.
+        if len(s1) + len(s2) != len(s3):
+            return False
+        
+        # Create a DP table where dp[i][j] indicates whether the first i characters
+        # of s1 and the first j characters of s2 can form the first i+j characters of s3.
+        dp = [[False] * (len(s2) + 1) for _ in range(len(s1) + 1)]
+        
+        # Base case: Empty s1 and s2 form an empty s3.
+        dp[0][0] = True
+        
+        # Fill the DP table.
+        for i in range(len(s1) + 1):  # Iterate over all characters of s1 (including 0)
+            for j in range(len(s2) + 1):  # Iterate over all characters of s2 (including 0)
+                # Check if the current character of s1 matches the current character of s3
+                # and if the previous state dp[i-1][j] is True.
+                if i > 0 and s1[i - 1] == s3[i + j - 1]:
+                    dp[i][j] |= dp[i - 1][j]  # Carry forward the result from dp[i-1][j]
+                
+                # Check if the current character of s2 matches the current character of s3
+                # and if the previous state dp[i][j-1] is True.
+                if j > 0 and s2[j - 1] == s3[i + j - 1]:
+                    dp[i][j] |= dp[i][j - 1]  # Carry forward the result from dp[i][j-1]
+        
+        # The value at dp[len(s1)][len(s2)] tells whether s3 can be formed by interleaving
+        # all characters of s1 and s2.
+        return dp[len(s1)][len(s2)]
+
+```
+
+## Binary Tree Maximum Path Sum
+
+```python
+class Solution:
+    def __init__(self):
+        self.result = float('-inf')  # Initialize the result to negative infinity
+
+    def maxPathSum(self, root: Optional[TreeNode]) -> int:
+        def traversal(node: Optional[TreeNode]) -> int:
+            if not node:
+                return 0  # Base case: a null node contributes 0 to the path sum
+
+            # Recursively calculate the max path sums for left and right subtrees
+            left_max = max(traversal(node.left), 0)  # Ignore negative contributions
+            right_max = max(traversal(node.right), 0)  # Ignore negative contributions
+
+            # Update the global result: maximum sum through the current node
+            self.result = max(self.result, left_max + right_max + node.val)
+
+            # Return the maximum path sum starting from the current node
+            return max(left_max, right_max) + node.val
+
+        traversal(root)  # Start traversal from the root node
+        return self.result  # Return the maximum path sum
+
+```
+
+```python
+"""
+Two Pointers
+"""
+
+class Solution:
+    def longestPalindrome(self, s: str) -> str:
+        # Helper function to expand around the center and find the longest palindrome
+        def countAroundCenter(left: int, right: int) -> str:
+            while left >= 0 and right < len(s) and s[left] == s[right]:
+                left -= 1
+                right += 1
+            # Return the palindrome substring found by expanding
+            return s[left + 1:right]
+
+        # Base case: If the string is empty or has one character, return it
+        if len(s) <= 1:
+            return s
+
+        result = ""
+        for i in range(len(s)):
+            # Check for the longest odd-length palindrome centered at `i`
+            odd_palindrome = countAroundCenter(i, i)
+            # Check for the longest even-length palindrome centered at `i` and `i+1`
+            even_palindrome = countAroundCenter(i, i + 1)
+
+            # Choose the longer palindrome of the two
+            current_longest = odd_palindrome if len(odd_palindrome) > len(even_palindrome) else even_palindrome
+
+            # Update the result if the current longest is longer than the result
+            result = current_longest if len(current_longest) > len(result) else result
+
+        return result
+
+```
+
+## Maximal Square
+
+```python
+class Solution:
+    def maximalSquare(self, matrix: List[List[str]]) -> int:
+        # Edge case: if the matrix is empty or has no columns, return 0
+        if not matrix or not matrix[0]:
+            return 0
+
+        # Dimensions of the matrix
+        m, n = len(matrix), len(matrix[0])
+        # DP table to store the size of the largest square ending at each cell
+        dp = [[0] * n for _ in range(m)]
+        # Variable to track the side length of the largest square found
+        max_side = 0
+
+        # Fill the DP table
+        for i in range(m):
+            for j in range(n):
+                if matrix[i][j] == '1':  # Only process cells with '1'
+                    if i == 0 or j == 0:  # Base case: first row or first column
+                        dp[i][j] = 1  # Square size is 1 for these cells
+                    else:
+                        # Transition relation:
+                        # The size of the square ending at (i, j) depends on the
+                        # minimum of the squares ending at (i-1, j), (i, j-1), and (i-1, j-1)
+                        dp[i][j] = min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]) + 1
+
+                    # Update the maximum side length found so far
+                    max_side = max(max_side, dp[i][j])
+
+        # Optional: Print the DP table for debugging
+        # print(dp)
+
+        # The area of the largest square is the square of its side length
+        return max_side ** 2
+
+```
+
+```python
+class Solution:
+    def maxPoints(self, points: List[List[int]]) -> int:
+        # Helper function to check if two points are identical
+        def isSame(a: List[int], b: List[int]) -> bool:
+            return a[0] == b[0] and a[1] == b[1]
+
+        # Helper function to calculate slope between two points
+        def getSlope(a: List[int], b: List[int]) -> float:
+            deltaX = a[0] - b[0]
+            # Handle vertical lines (infinite slope)
+            if deltaX == 0:
+                return float('inf')
+
+            deltaY = a[1] - b[1]
+            return float(deltaY) / float(deltaX)
+
+        # Base case: if 2 or fewer points, they're always on the same line
+        if len(points) <= 2:
+            return len(points)
+
+        # Initialize result to 1 (a single point is always on a line)
+        max_num = 1
+
+        # For each point, find lines through it
+        for i in range(len(points)):
+            # Count duplicate points
+            duplicate = 0
+            # Dictionary to store count of points for each slope
+            point_map = {}
+            
+            # Compare with all points after current point
+            for j in range(i+1, len(points)):
+                if isSame(points[i], points[j]):
+                    # If points are identical, increment duplicate counter
+                    duplicate += 1
+                else:
+                    # Calculate slope with current point
+                    slope = getSlope(points[i], points[j])
+                    # Initialize count to 1 (to include the endpoint) and increment
+                    point_map[slope] = point_map.get(slope, 1) + 1
+
+            # Current max is either all duplicates, or max points along a slope + duplicates
+            current_max = duplicate
+            if point_map:
+                current_max = max(point_map.values()) + duplicate
+
+            # Update global maximum
+            max_num = max(num, current_max)
+
+        return max_num
+
+```
+
+## Median of Two Sorted Arrays
+
+```python
+class Solution:
+    def findMedianSortedArrays(self, nums1: List[int], nums2: List[int]) -> float:
+        # Ensure nums1 is the smaller array to minimize binary search complexity
+        if len(nums1) > len(nums2):
+            nums1, nums2 = nums2, nums1
+
+        m, n = len(nums1), len(nums2)  # Lengths of the two arrays
+        l = m + n  # Total length of the combined arrays
+        half = (m + n + 1) // 2  # Half length for partitioning
+
+        left, right = 0, m  # Binary search bounds on the smaller array
+
+        while left <= right:
+            partition1 = (left + right) // 2  # Partition index for nums1
+            partition2 = half - partition1  # Partition index for nums2
+
+            # Values around the partition for nums1
+            left1 = float('-inf') if partition1 == 0 else nums1[partition1 - 1]
+            right1 = float('inf') if partition1 == m else nums1[partition1]
+
+            # Values around the partition for nums2
+            left2 = float('-inf') if partition2 == 0 else nums2[partition2 - 1]
+            right2 = float('inf') if partition2 == n else nums2[partition2]
+
+            # Check if the current partition is valid
+            if left1 <= right2 and left2 <= right1:
+                # If the total length is odd, return the maximum of left values
+                if l % 2 == 1:
+                    return max(left1, left2)
+                else:
+                    # If the total length is even, return the average of max left and min right values
+                    return (max(left1, left2) + min(right1, right2)) / 2
+
+            # Adjust the binary search bounds
+            if left1 > right2:
+                right = partition1 - 1  # Move left in nums1
+            if right1 < left2:
+                left = partition1 + 1  # Move right in nums1
+
+```
+
+## Find Median from Data Stream
+
+```python
+import heapq
+
+class MedianFinder:
+    def __init__(self):
+        # Max-heap for the smaller half
+        self.small = []
+        # Min-heap for the larger half
+        self.large = []
+
+
+    def addNum(self, num: int) -> None:
+        # Add the number to the max-heap
+        heapq.heappush(self.small, -num)
+
+        # Ensure the max-heap's largest element is less than or equal to the min-heap's smallest element
+        if self.small and self.large and -(self.small[0]) > self.large[0]:
+            element = heapq.heappop(self.small)
+            heapq.heappush(self.large, -element)
+
+        # Ensure the heaps are balanced in size approximately (size difference at most 1)
+        if len(self.small) > len(self.large) + 1:
+            element = heapq.heappop(self.small)
+            heapq.heappush(self.large, -element)
+        elif len(self.large) > len(self.small) + 1:
+            lement = heapq.heappop(self.large)
+            heapq.heappush(self.large, -element)
+
+    def findMedian(self) -> float:
+        # If total number of elements is odd, return the root of the larger heap
+        if len(self.small) > len(self.large):
+            return -(self.small[0])
+        elif len(self.large) > len(self.small):
+            return self.large[0]
+        else:
+            # If total number of elements is even, return the average of the roots
+            return (-(self.small[0]) + self.large[0]) / 2
+
+```
+
+## Word Labber
+
+```python
+from collections import deque
+from typing import List
+
+class Solution:
+    def ladderLength(self, beginWord: str, endWord: str, wordList: List[str]) -> int:
+        # Convert the wordList into a set for O(1) lookups
+        word_set = set(wordList)
+        
+        # If the endWord is not in the word set, there's no possible transformation
+        if endWord not in word_set:
+            return 0
+
+        # Initialize a queue for BFS with the starting word and step count (1)
+        queue = deque([(beginWord, 1)])
+        
+        # Perform BFS to find the shortest path
+        while queue:
+            # Dequeue the current word and its transformation step count
+            word, step = queue.popleft()
+            
+            # If the current word matches the endWord, return the step count
+            if word == endWord:
+                return step
+
+            # Generate all possible words by changing one character at a time
+            for i in range(len(word)):
+                for c in 'abcdefghijklmnopqrstuvwxyz':
+                    # Create a new word by replacing the character at position i
+                    next_word = word[:i] + c + word[i+1:]
+
+                    # If the new word is in the word set (valid transformation)
+                    if next_word in word_set:
+                        # Add the new word to the queue with an incremented step count
+                        queue.append((next_word, step + 1))
+                        
+                        # Remove the new word from the word set to mark it as visited
+                        word_set.remove(next_word)
+
+        # If the queue is exhausted without finding the endWord, return 0
+        return 0
+
+```
+
+## Merge k Sorted Lists
+
+```python
+class Solution:
+    def mergeKLists(self, lists: List[Optional[ListNode]]) -> Optional[ListNode]:
+        if not lists or all(node is None for node in lists):
+            return None
+
+        # Min-heap to store (value, index, node) tuples
+        heap = []
+        
+        # Push the initial nodes of each list into the heap
+        for i, node in enumerate(lists):
+            if node:  # Only push non-empty lists
+                heappush(heap, (node.val, i, node))
+        
+        dummy = ListNode()
+        cur = dummy
+        
+        while heap:
+            # Pop the smallest element from the heap
+            _, i, min_node = heappop(heap)
+            
+            # Add the smallest node to the merged list
+            cur.next = min_node
+            cur = cur.next
+            
+            # If there's a next node in the same list, push it into the heap
+            if min_node.next:
+                heappush(heap, (min_node.next.val, i, min_node.next))
+        
+        return dummy.next
+
+```
+
+## IPO
+
+```python
+import heapq
+from typing import List
+
+class Solution:
+    def findMaximizedCapital(self, k: int, w: int, profits: List[int], capital: List[int]) -> int:
+        # Step 1: Combine capital and profits into a list of tuples (capital, profit)
+        # and sort by the capital required for each project in ascending order.
+        projects = sorted(zip(capital, profits), key=lambda x: x[0])
+        
+        # Step 2: Max-heap to store the profits of projects that can be started.
+        # Use negative profits to simulate a max-heap with Python's min-heap.
+        maxProfit = []
+        
+        # Step 3: Iterate up to `k` times to pick at most `k` projects.
+        n = len(projects)  # Total number of projects
+        index = 0          # Tracks the current position in the sorted project list
+        
+        for _ in range(k):
+            # Step 4: Add all projects to the heap whose capital requirement
+            # is less than or equal to the current available capital `w`.
+            while index < n and projects[index][0] <= w:
+                # Push the profit (negated) into the max-heap
+                heapq.heappush(maxProfit, -projects[index][1])
+                index += 1
+
+            # Step 5: If no projects can be started, break the loop.
+            if not maxProfit:
+                break
+                
+            # Step 6: Select the most profitable project from the heap.
+            # Add its profit to the current capital `w`.
+            w += -(heapq.heappop(maxProfit))
+        
+        # Step 7: Return the final capital after selecting up to `k` projects.
+        return w
+
+```
+
+## Maximum Sum Circular Subarray
+
+```python
+class Solution:
+    def maxSubarraySumCircular(self, nums: List[int]) -> int:
+        # Edge case: Single element array
+        if len(nums) == 1:
+            return nums[0]
+
+        # Initialize variables
+        curMax, curMin = 0, 0
+        globMax, globMin = nums[0], nums[0]
+        total = 0  # Sum of all elements in the array
+
+        # Iterate through the array
+        for num in nums:
+            total += num  # Update total sum
+
+            # Update current maximum subarray sum
+            curMax = max(curMax + num, num)
+            globMax = max(globMax, curMax)  # Update global maximum
+
+            # Update current minimum subarray sum
+            curMin = min(curMin + num, num)
+            globMin = min(globMin, curMin)  # Update global minimum
+
+        # If the global maximum is positive, consider both circular and non-circular cases
+        # Otherwise, return the global maximum (handles all-negative arrays)
+        return max(globMax, total - globMin) if globMax > 0 else globMax
+
+```
+
+## Word Search
+
+```python
+class Solution:
+    def exist(self, board: List[List[str]], word: str) -> bool:
+        # Helper function to perform DFS from a specific cell
+        def dfs(row: int, col: int, index: int) -> bool:
+            # Base case: If the current index matches the last character of the word, return True
+            if index == len(word) - 1:
+                return True
+
+            # Store the current character and mark the cell as visited
+            char = board[row][col]
+            board[row][col] = '#'  # Mark as visited by replacing it with a placeholder
+
+            # Explore all 4 possible directions
+            for x, y in directions:
+                # Check if the neighboring cell is within bounds and matches the next character
+                if 0 <= row + x < m and 0 <= col + y < n:
+                    if board[row + x][col + y] == word[index + 1] and dfs(row + x, col + y, index + 1):
+                        return True
+
+            # Restore the original character after backtracking
+            board[row][col] = char
+            return False
+
+        # Define the possible moves: down, up, left, right
+        directions = [(1, 0), (-1, 0), (0, -1), (0, 1)]
+
+        # Get dimensions of the board
+        m, n = len(board), len(board[0])
+
+        # Iterate through each cell in the board to find the starting point
+        for i in range(m):
+            for j in range(n):
+                # If the current cell matches the first character, start a DFS from it
+                if board[i][j] == word[0] and dfs(i, j, 0):
+                    return True
+
+        # If no valid path is found, return False
+        return False
+
+```
+
+## Design Add and Search Words Data Structure
+
+```python
+class WordDictionary:
+
+    def __init__(self):
+        # Initialize the root of the Trie as an empty dictionary
+        self.root = {}
+        
+
+    def addWord(self, word: str) -> None:
+        """
+        Add a word to the Trie.
+        """
+        cur = self.root  # Start from the root node
+        for char in word:
+            # If the character is not in the current node, add it
+            if char not in cur:
+                cur[char] = {}
+            # Move to the next node
+            cur = cur[char]
+        # Mark the end of a word with a special '#' key
+        cur['#'] = True
+
+        
+    def search(self, word: str) -> bool:
+        """
+        Search for a word in the Trie. Supports wildcard '.' which matches any character.
+        """
+        def dfs(cur: dict, index: int) -> bool:
+            """
+            Perform Depth-First Search to check if the word exists in the Trie.
+            - cur: Current node in the Trie
+            - index: Current character index in the word being searched
+            """
+            # Base case: If we've reached the end of the word, check for the end-of-word marker
+            if index == len(word):
+                return '#' in cur
+
+            # Get the current character
+            char = word[index]
+
+            if char == '.':
+                # Wildcard case: Try all possible child nodes
+                for key in cur:
+                    # Skip the '#' marker and recursively search the next character
+                    if key != '#' and dfs(cur[key], index + 1):
+                        return True
+            elif char in cur:
+                # Regular character case: Check the specific child node
+                if dfs(cur[char], index + 1):
+                    return True
+            
+            # If no match is found, return False
+            return False
+
+        # Start DFS from the root of the Trie
+        return dfs(self.root, 0)
+
+```
+
+## Find First and Last Position of Element in Sorted Array
+
+```python
+from typing import List
+
+class Solution:
+    def searchRange(self, nums: List[int], target: int) -> List[int]:
+        # Helper function to perform binary search
+        # If `first` is True, search for the first occurrence
+        # If `first` is False, search for the last occurrence
+        def binarySearch(nums: List[int], target: int, first: bool) -> int:
+            left, right = 0, len(nums) - 1
+            index = -1  # Default index when the target is not found
+            
+            while left <= right:
+                mid = (left + right) // 2  # Calculate the middle index
+                
+                if nums[mid] < target:
+                    left = mid + 1  # Move right if the target is larger
+                elif nums[mid] > target:
+                    right = mid - 1  # Move left if the target is smaller
+                else:
+                    # Target found, update index
+                    index = mid
+                    if first:
+                        right = mid - 1  # Continue searching in the left part
+                    else:
+                        left = mid + 1  # Continue searching in the right part
+            
+            return index
+
+        # Edge case: If the array is empty
+        if not nums:
+            return [-1, -1]
+
+        # Perform binary search to find the first and last occurrences
+        first = binarySearch(nums, target, first=True)
+        last = binarySearch(nums, target, first=False)
+
+        # Return the range as a list
+        return [first, last]
+
+```
+
+## Word Search II
+
+```python
+from typing import List
+
+class Solution:
+    def findWords(self, board: List[List[str]], words: List[str]) -> List[str]:
+        def dfs(row: int, col: int, node: dict, path: List[str]) -> None:
+            # Save the current character and mark the cell as visited
+            char = board[row][col]
+            board[row][col] = '#'  # Mark the cell to avoid revisiting during this path
+
+            # Move to the next Trie node for the current character
+            node = node[char]
+            path.append(char)  # Add the character to the current path
+
+            # If a complete word is found, add it to the result
+            if '.' in node:
+                result.add(''.join(path))  # Use a set to avoid duplicates
+
+            # Explore all valid neighboring cells
+            for x, y in directions:
+                new_row, new_col = row + x, col + y
+                if 0 <= new_row < m and 0 <= new_col < n:  # Check bounds
+                    if board[new_row][new_col] in node:  # Continue DFS if character is in Trie
+                        dfs(new_row, new_col, node, path)
+
+            # Backtrack: Restore the cell and remove the last character from the path
+            path.pop()
+            board[row][col] = char
+
+        # Directions for moving up, down, left, and right
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+        # Dimensions of the board
+        m, n = len(board), len(board[0])
+
+        # Build a Trie (prefix tree) from the list of words
+        trie = {}
+        for word in words:
+            cur = trie
+            for char in word:
+                if char not in cur:
+                    cur[char] = {}  # Create a new node for the character
+                cur = cur[char]
+            cur['.'] = True  # Mark the end of a word
+
+        # Result set to store found words
+        result = set()
+
+        # Start DFS from every cell in the board
+        for i in range(m):
+            for j in range(n):
+                if board[i][j] in trie:  # Start DFS only if the character is in the Trie
+                    dfs(i, j, trie, [])
+
+        # Return the result as a list
+        return list(result)
+
+```
+
+## KMP
+```python
+from typing import List
+
+class Solution:
+    def strStr(self, haystack: str, needle: str) -> int:
+        def getPrefix(pattern: str) -> List[int]:
+            """
+            Build the prefix table for the needle.
+            prefix[i] represents the length of the longest prefix that is also a suffix
+            for the substring pattern[0:i+1].
+            """
+            prefix = [0] * len(pattern)
+            k = 0  # Length of the current longest prefix
+
+            for i in range(1, len(pattern)):
+                # Fall back until characters match or we reach the start
+                while k > 0 and pattern[k] != pattern[i]:
+                    k = prefix[k - 1]
+
+                # If characters match, extend the prefix
+                if pattern[k] == pattern[i]:
+                    k += 1
+                prefix[i] = k  # Update prefix table
+
+            return prefix
+
+        # Edge case: If needle is empty, return 0
+        if not needle:
+            return 0
+
+        # Build the prefix table for the needle
+        prefix = getPrefix(needle)
+        k = 0  # Current position in needle
+
+        # Traverse the haystack to find the needle
+        for i, char in enumerate(haystack):
+            # Fall back until characters match or we reach the start
+            while k > 0 and needle[k] != char:
+                k = prefix[k - 1]
+
+            # If characters match, move to the next character in the needle
+            if needle[k] == char:
+                k += 1
+
+            # If we've matched the entire needle, return the starting index
+            if k == len(needle):
+                return i - k + 1
+
+        # If no match is found, return -1
+        return -1
+
+```
+
+## Text Justification
+
+```python
+from typing import List
+
+class Solution:
+    def fullJustify(self, words: List[str], maxWidth: int) -> List[str]:
+        result = []  # To store the justified lines
+        line, length = [], 0  # Current line and its total length
+
+        for word in words:
+            # Check if adding the next word exceeds maxWidth
+            if length + len(line) + len(word) > maxWidth:
+                # Calculate the extra spaces to distribute
+                extra_spaces = maxWidth - length
+                if len(line) == 1:
+                    # If there's only one word, left justify the line
+                    result.append(line[0] + ' ' * extra_spaces)
+                else:
+                    # Distribute spaces evenly
+                    spaces = extra_spaces // (len(line) - 1)
+                    remainder = extra_spaces % (len(line) - 1)
+
+                    # Add spaces to words in the line
+                    for j in range(len(line) - 1):
+                        line[j] += ' ' * spaces
+                        if remainder > 0:
+                            line[j] += ' '
+                            remainder -= 1
+
+                    # Join the line into a single string
+                    result.append(''.join(line))
+
+                # Reset the line and its length for the next line
+                line, length = [], 0
+
+            # Add the current word to the line
+            line.append(word)
+            length += len(word)
+
+        # Handle the last line (left-justified)
+        last_line = ' '.join(line)
+        last_line += ' ' * (maxWidth - len(last_line))
+        result.append(last_line)
 
         return result
 
