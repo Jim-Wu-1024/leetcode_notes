@@ -1,5 +1,7 @@
+.gitignore
+
 # Operating system files
-.DS_Store
+**/.DS_Store
 Thumbs.db
 
 # Dependencies
