@@ -552,14 +552,22 @@ class Solution:
 
 ```
 
-### 239. Sliding Window Maximum
+### 239. Sliding Window Maximum / 1438. Longest Continuous Subarray With Absolute Diff Less Than or Equal to Limit
 
-Deque for Maximum Tracking:
+**239:**
+  
+  Deque for Maximum Tracking:
 
 - Use a deque to store indices of elements in the current window.
 - The deque maintains elements in decreasing order of value:
    - The front of the deque always holds the index of the maximum element in the window.
    - Smaller elements are removed from the deque because they can never be the maximum while larger elements exist.
+
+**1438:**
+
+Use two deques to track the maximum and minimum values in the current window:
+  - `max_queue`: Stores indices of elements in decreasing order of their values.
+  - `min_queue`: Stores indices of elements in increasing order of their values.
 
 ```python
 from typing import List
@@ -598,6 +606,42 @@ class Solution:
             right += 1
         
         return result
+
+
+from collections import deque
+from typing import List
+
+class Solution:
+    def longestSubarray(self, nums: List[int], limit: int) -> int:
+        left = 0
+        max_len = 0
+        max_queue, min_queue = deque(), deque()
+
+        for right in range(len(nums)):
+            # Maintain decreasing order in max_queue
+            while max_queue and nums[right] > nums[max_queue[-1]]:
+                max_queue.pop()
+            max_queue.append(right)
+
+            # Maintain increasing order in min_queue
+            while min_queue and nums[right] < nums[min_queue[-1]]:
+                min_queue.pop()
+            min_queue.append(right)
+
+            # Check if the current window is valid
+            while nums[max_queue[0]] - nums[min_queue[0]] > limit:
+                left += 1
+                # Remove elements out of the window from the deques
+                if max_queue[0] < left:
+                    max_queue.popleft()
+                if min_queue[0] < left:
+                    min_queue.popleft()
+
+            # Update the maximum length of the valid window
+            max_len = max(max_len, right - left + 1)
+
+        return max_len
+
 
 ```
 
@@ -659,6 +703,313 @@ class Solution:
             # Move the next index to the back of the queue (if any)
             if queue:
                 queue.append(queue.popleft())
+
+        return result
+
+```
+
+### 1670. Design Front Middle Back Queue
+
+```python
+from collections import deque
+
+class FrontMiddleBackQueue:
+    def __init__(self):
+        self.front = deque()
+        self.back = deque()
+
+    def _balance(self):
+        """Ensure that the front deque has at most one more element than the back deque."""
+        while len(self.front) > len(self.back) + 1:
+            self.back.appendleft(self.front.pop())
+        while len(self.back) > len(self.front):
+            self.front.append(self.back.popleft())
+
+    def pushFront(self, val: int) -> None:
+        self.front.appendleft(val)
+        self._balance()
+
+    def pushMiddle(self, val: int) -> None:
+        if len(self.front) > len(self.back):
+            self.back.appendleft(self.front.pop())
+        self.front.append(val)
+
+    def pushBack(self, val: int) -> None:
+        self.back.append(val)
+        self._balance()
+
+    def popFront(self) -> int:
+        if not self.front and not self.back:
+            return -1
+        value = self.front.popleft()
+        self._balance()
+        return value
+
+    def popMiddle(self) -> int:
+        if not self.front and not self.back:
+            return -1
+        value = self.front.pop()
+        self._balance()
+        return value
+
+    def popBack(self) -> int:
+        if not self.front and not self.back:
+            return -1
+        value = self.back.pop() if self.back else self.front.pop()
+        self._balance()
+        return value
+        
+```
+
+## Heap
+
+- A **heap** is a specialized binary tree-based data structure.
+- It satisfies the heap property:
+   - **Max-Heap**: Every parent node is greater than or equal to its child nodes.
+   - **Min-Heap**: Every parent node is less than or equal to its child nodes.
+
+### 1046. Last Stone Weight
+
+```python
+import heapq
+from typing import List
+
+class Solution:
+    def lastStoneWeight(self, stones: List[int]) -> int:
+        # Step 1: Create a max-heap by pushing negative weights
+        heap = [-stone for stone in stones]
+        heapq.heapify(heap)
+
+        # Step 2: Smash stones until at most one remains
+        while len(heap) > 1:
+            # Pop the two heaviest stones
+            x = heapq.heappop(heap)  # Largest stone (negative value)
+            y = heapq.heappop(heap)  # Second largest stone (negative value)
+
+            # If they are not equal, push the difference back
+            if x != y:
+                heapq.heappush(heap, x - y)  # Difference is negative
+
+        # Step 3: Return the remaining stone or 0 if none remain
+        return -heap[0] if heap else 0
+
+```
+
+### 2336. Smallest Number in Infinite Set
+
+```python
+import heapq
+
+class SmallestInfiniteSet:
+
+    def __init__(self):
+        # Set to track numbers that have been removed (popped)
+        self.removed = set()
+
+        # Min-heap to store numbers that are explicitly added back
+        self.heap = []
+
+        # Tracks the smallest number in the "infinite" sequence that has not been removed
+        self.minimum = 1
+
+    def popSmallest(self) -> int:
+        # If the heap is not empty, pop the smallest number from the heap
+        if self.heap:
+            value = heapq.heappop(self.heap)  # Get the smallest number from the heap
+            self.removed.add(value)  # Mark it as removed
+            return value  # Return the smallest value
+
+        # If the heap is empty, return the current "minimum" value from the infinite sequence
+        value = self.minimum
+        self.minimum += 1  # Move to the next smallest infinite number
+        self.removed.add(value)  # Mark the current number as removed
+        return value
+
+    def addBack(self, num: int) -> None:
+        # Only add the number back if:
+        # 1. It is smaller than the current "minimum" (i.e., part of the finite sequence).
+        # 2. It has been previously removed (i.e., exists in the `removed` set).
+        if num < self.minimum and num in self.removed:
+            heapq.heappush(self.heap, num)  # Add the number back to the heap
+            self.removed.remove(num)  # Remove it from the `removed` set since it's now available again
+
+```
+
+### 2530. Maximal Score After Applying K Operations
+
+```python
+import heapq
+import math
+from typing import List
+
+class Solution:
+    def maxKelements(self, nums: List[int], k: int) -> int:
+        # Step 1: Convert nums to a max-heap by storing negative values
+        heap = [-num for num in nums]
+        heapq.heapify(heap)  # O(n) to build the heap
+
+        score = 0
+
+        # Step 2: Perform k operations
+        for _ in range(k):
+            value = -heapq.heappop(heap)  # Get the maximum value
+            score += value
+            # Push back the ceiling of value / 3 as a negative value
+            heapq.heappush(heap, -math.ceil(value / 3))
+
+        return score
+
+```
+
+### 3296. Minimum Number of Seconds to Make Mountain Height Zero
+
+```python
+import heapq
+from typing import List
+
+class Solution:
+    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:
+        # Initialize a min-heap with (time to complete first task, worker's original time, task count)
+        heap = [(time, time, 1) for time in workerTimes]
+        heapq.heapify(heap)
+
+        total_time = 0
+
+        while mountainHeight > 0:
+            # Get the worker who finishes the next task the earliest
+            cur_time, base_time, count = heapq.heappop(heap)
+
+            # Update the total time to reflect the last finished task
+            total_time = max(total_time, cur_time)
+
+            # Decrease the remaining mountain height (assign one task to this worker)
+            mountainHeight -= 1
+
+            # Push the worker back into the heap with their updated next task time
+            next_time = cur_time + base_time * (count + 1)
+            heapq.heappush(heap, (next_time, base_time, count + 1))
+
+        return total_time
+
+```
+
+### 1801. Number of Orders in the Backlog
+
+```python
+import heapq
+from typing import List
+
+class Solution:
+    def getNumberOfBacklogOrders(self, orders: List[List[int]]) -> int:
+        MOD = 10**9 + 7
+
+        # Heaps for buy and sell orders
+        buy_heap = []  # Max-heap for buy orders (negative prices for max-heap simulation)
+        sell_heap = []  # Min-heap for sell orders (positive prices for natural min-heap behavior)
+
+        # Process each order
+        for price, amount, orderType in orders:
+            if orderType == 0:  # Buy order
+                # Try to match with the lowest-priced sell orders
+                while sell_heap and sell_heap[0][0] <= price and amount > 0:
+                    sell_price, sell_amount = heapq.heappop(sell_heap)  # Get the lowest sell price
+                    if sell_amount <= amount:
+                        # Sell order is fully matched
+                        amount -= sell_amount
+                    else:
+                        # Partially match the sell order
+                        heapq.heappush(sell_heap, (sell_price, sell_amount - amount))
+                        amount = 0  # Buy order is fully satisfied
+                # If there is any remaining amount in the buy order, add it to the buy heap
+                if amount > 0:
+                    heapq.heappush(buy_heap, (-price, amount))
+
+            else:  # Sell order
+                # Try to match with the highest-priced buy orders
+                while buy_heap and -buy_heap[0][0] >= price and amount > 0:
+                    buy_price, buy_amount = heapq.heappop(buy_heap)  # Get the highest buy price
+                    if buy_amount <= amount:
+                        # Buy order is fully matched
+                        amount -= buy_amount
+                    else:
+                        # Partially match the buy order
+                        heapq.heappush(buy_heap, (buy_price, buy_amount - amount))
+                        amount = 0  # Sell order is fully satisfied
+                # If there is any remaining amount in the sell order, add it to the sell heap
+                if amount > 0:
+                    heapq.heappush(sell_heap, (price, amount))
+
+        # Calculate the total remaining orders in the backlog
+        backlog = 0
+        for _, amount in buy_heap:
+            backlog += amount  # Sum up remaining buy orders
+        for _, amount in sell_heap:
+            backlog += amount  # Sum up remaining sell orders
+
+        # Return the total backlog modulo 10^9 + 7
+        return backlog % MOD
+
+```
+
+### 2233. Maximum Product After K Increments
+
+```python
+import heapq
+from typing import List
+
+class Solution:
+    def maximumProduct(self, nums: List[int], k: int) -> int:
+        MOD = 10**9 + 7
+
+        # Step 1: Convert nums into a min-heap
+        heapq.heapify(nums)
+
+        # Step 2: Increment the smallest element k times
+        for _ in range(k):
+            heapq.heappush(nums, heapq.heappop(nums) + 1)
+
+        # Step 3: Calculate the product of all elements, taking modulo at each step
+        result = 1
+        for num in nums:
+            result = (result * num) % MOD
+
+        return result
+
+```
+
+### 1834. Single-Threaded CPU
+
+```python
+import heapq
+from typing import List
+
+class Solution:
+    def getOrder(self, tasks: List[List[int]]) -> List[int]:
+        # Step 1: Add original indices to tasks and sort by enqueue time
+        indexed_tasks = [(et, pt, i) for i, (et, pt) in enumerate(tasks)]
+        indexed_tasks.sort(key=lambda x: x[0])  # Sort by enqueueTime
+
+        # Step 2: Use a min-heap for processing tasks
+        heap = []
+        time = 0
+        result = []
+        i = 0  # Pointer for traversing indexed_tasks
+
+        # Step 3: Simulate CPU processing
+        while len(result) < len(tasks):
+            # Add all tasks that are available at the current time
+            while i < len(indexed_tasks) and indexed_tasks[i][0] <= time:
+                heapq.heappush(heap, (indexed_tasks[i][1], indexed_tasks[i][2]))  # (processingTime, index)
+                i += 1
+
+            if heap:
+                # Process the next task
+                processing_time, index = heapq.heappop(heap)
+                time += processing_time
+                result.append(index)
+            else:
+                # If no tasks are available, move time to the next task's enqueueTime
+                time = indexed_tasks[i][0]
 
         return result
 

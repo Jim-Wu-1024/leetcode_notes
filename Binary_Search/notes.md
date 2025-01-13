@@ -416,3 +416,55 @@ class Solution:
         return right
 
 ```
+
+### 1818. Minimum Absolute Sum Difference
+
+```python
+from typing import List
+
+class Solution:
+    def minAbsoluteSumDiff(self, nums1: List[int], nums2: List[int]) -> int:
+        def search_closest(nums: List[int], target: int) -> int:
+            # Binary search to find the closest value to target
+            left, right = 0, len(nums) - 1
+            while left <= right:
+                mid = (left + right) // 2
+                if nums[mid] == target:
+                    return 0  # Exact match, no difference
+                if nums[mid] < target:
+                    left = mid + 1
+                else:
+                    right = mid - 1
+
+            # Determine the closest value between nums[left] and nums[left - 1]
+            if left == 0:
+                return abs(nums[left] - target)
+            if left >= len(nums):
+                return abs(nums[left - 1] - target)
+
+            return min(abs(nums[left] - target), abs(nums[left - 1] - target))
+
+        MOD = 10**9 + 7
+
+        # Step 1: Sort nums1 for binary search
+        search = sorted(nums1)
+
+        total_diff = 0
+        max_gain = 0
+
+        # Step 2: Calculate the total difference and potential maximum gain
+        for i in range(len(nums1)):
+            diff = abs(nums1[i] - nums2[i])
+            total_diff += diff
+
+            # Find the potential smallest difference if nums1[i] is replaced
+            closest_diff = search_closest(search, nums2[i])
+            gain = diff - closest_diff
+
+            # Track the maximum gain
+            max_gain = max(max_gain, gain)
+
+        # Step 3: Return the minimized total difference
+        return (total_diff - max_gain) % MOD
+
+```
