@@ -1,6 +1,6 @@
 ### [1757. Recyclable and Low Fat Products](https://leetcode.cn/problems/recyclable-and-low-fat-products/)
 
-```sql
+```mysql
 SELECT 
     product_id 
 FROM 
@@ -11,7 +11,7 @@ WHERE
 
 ### [584. Find Customer Referee](https://leetcode.cn/problems/find-customer-referee/)
 
-```sql
+```mysql
 SELECT
     name
 FROM
@@ -22,7 +22,7 @@ WHERE
 
 ### [595. Big Countries](https://leetcode.cn/problems/big-countries/)
 
-```sql
+```mysql
 SELECT
     name, population, area
 FROM
@@ -33,7 +33,7 @@ WHERE
 
 ### [1148. Article Views I](https://leetcode.cn/problems/article-views-i/)
 
-```sql
+```mysql
 SELECT
     DISTINCT author_id AS id 
 FROM
@@ -46,7 +46,7 @@ ORDER BY
 
 ### [1683. Invalid Tweets](https://leetcode.cn/problems/invalid-tweets/)
 
-```sql
+```mysql
 SELECT
     tweet_id
 FROM
