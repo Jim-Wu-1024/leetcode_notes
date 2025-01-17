@@ -101,3 +101,39 @@ ORDER BY
     stu.student_id, sub.subject_name
 ```
 
+### [570. Managers with at Least 5 Direct Reports](https://leetcode.cn/problems/managers-with-at-least-5-direct-reports/)
+
+```mysql
+SELECT
+    name
+FROM
+    Employee employee
+INNER JOIN
+(SELECT
+    managerId
+FROM
+    Employee
+GROUP BY
+    managerId
+HAVING
+    COUNT(managerId) >= 5
+) AS manager
+ON
+    employee.id = manager.managerId
+```
+
+### [1934. Confirmation Rate](https://leetcode.cn/problems/confirmation-rate/)
+
+```mysql
+SELECT 
+    s.user_id, ROUND(IFNULL(AVG(c.action = "confirmed"), 0), 2) AS confirmation_rate
+FROM
+    Signups s
+LEFT JOIN
+    Confirmations c
+ON
+    s.user_id = c.user_id
+GROUP BY
+    s.user_id
+```
+
