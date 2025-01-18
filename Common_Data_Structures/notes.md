@@ -1014,3 +1014,152 @@ class Solution:
         return result
 
 ```
+
+### 1792. Maximum Average Pass Ratio
+
+```python
+import heapq
+
+class Solution:
+    def maxAverageRatio(self, classes: List[List[int]], extraStudents: int) -> float:
+        # Step 1: Calculate the initial gain for each class and build a max-heap
+        # Gain for adding one student is: ((p+1)/(t+1) - (p/t))
+        # We use negative gain to simulate a max-heap (as heapq is a min-heap by default)
+        gains = [(-((p+1)/(t+1) - (p/t)), p, t) for p, t in classes]
+        heapq.heapify(gains)  # Convert the list to a heap in O(n) time
+
+        # Step 2: Distribute the extra students
+        for _ in range(extraStudents):
+            # Pop the class with the highest potential gain
+            _, p, t = heapq.heappop(gains)
+
+            # Add one student to this class
+            p += 1
+            t += 1
+
+            # Recalculate the new gain for this class after adding the student
+            g = -((p+1)/(t+1) - (p/t))
+
+            # Push the updated class back into the heap
+            heapq.heappush(gains, (g, p, t))
+
+        # Step 3: Calculate the final average pass ratio
+        result = 0
+        for _, p, t in gains:
+            result += p / t  # Sum up the pass ratios of all classes
+
+        # Return the average pass ratio
+        return result / len(gains)
+
+```
+
+### 1882. Process Tasks Using Servers
+
+```python
+import heapq
+from collections import deque
+from typing import List
+
+class Solution:
+    def assignTasks(self, servers: List[int], tasks: List[int]) -> List[int]:
+        # Initialize the heap for available servers (weight, index)
+        available = [(weight, idx) for idx, weight in enumerate(servers)]
+        heapq.heapify(available)
+
+        # Initialize the heap for processing servers (free_time, index, weight)
+        processing = []
+
+        # Result array to store the order of assigned servers
+        order = []
+
+        time = 0
+        num = 0  # Tracks the current task being assigned
+
+        while num < len(tasks):
+            # Move servers from processing to available if they are done processing
+            while processing and processing[0][0] <= time:
+                free_time, idx, weight = heapq.heappop(processing)
+                heapq.heappush(available, (weight, idx))
+
+            # Assign tasks to available servers
+            while available and num < len(tasks) and time >= num:
+                weight, idx = heapq.heappop(available)
+                order.append(idx)
+                heapq.heappush(processing, (time + tasks[num], idx, weight))
+                num += 1
+
+            # Advance time to the next event if no servers are available
+            if not available:
+                time = processing[0][0]
+            else:
+                time = max(time, num)
+
+        return order
+
+```
+
+### 2398. Maximum Number of Robots Within Budget
+
+```python
+from collections import deque
+from typing import List
+
+class Solution:
+    def maximumRobots(self, chargeTimes: List[int], runningCosts: List[int], budget: int) -> int:
+        left = 0
+        max_queue = deque()  # Stores indices of chargeTimes
+        cost = 0
+        maximum = 0
+
+        for right in range(len(chargeTimes)):
+            # Maintain a deque for the maximum charge time in the current window
+            while max_queue and chargeTimes[right] > chargeTimes[max_queue[-1]]:
+                max_queue.pop()
+            max_queue.append(right)
+
+            # Update the running cost of the current window
+            cost += runningCosts[right]
+
+            # Check if the current window is valid
+            while chargeTimes[max_queue[0]] + (right - left + 1) * cost > budget:
+                # If invalid, shrink the window from the left
+                cost -= runningCosts[left]
+                if max_queue[0] == left:
+                    max_queue.popleft()  # Remove the leftmost chargeTime if it's out of the window
+                left += 1
+
+            # Update the maximum valid window size
+            maximum = max(maximum, right - left + 1)
+
+        return maximum
+
+```
+
+### 1717. Maximum Score From Removing Substrings
+
+```python
+class Solution:
+    def maximumGain(self, s: str, x: int, y: int) -> int:
+        # Define the higher-scoring pair
+        first, second, high, low = ('a', 'b', x, y) if x >= y else ('b', 'a', y, x)
+        
+        def calculate_score(s: str, first: str, second: str, score: int) -> int:
+            stack = []
+            total_score = 0
+            for char in s:
+                if stack and stack[-1] == first and char == second:
+                    total_score += score
+                    stack.pop()
+                else:
+                    stack.append(char)
+            return total_score, stack
+        
+        # First pass: Remove the higher scoring pairs
+        score, remaining = calculate_score(s, first, second, high)
+        
+        # Second pass: Remove the lower scoring pairs from the remaining string
+        low_score, _ = calculate_score(remaining, second, first, low)
+        
+        return score + low_score
+
+```
