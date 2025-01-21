@@ -676,3 +676,358 @@ class Solution:
         return self.total
 
 ```
+
+### 1123. Lowest Common Ancestor of Deepest Leaves
+
+```python
+class Solution:
+    def __init__(self):
+        # Initialize variables to track the maximum depth and the LCA candidate
+        self.max_depth = -1  # Keeps track of the deepest level in the tree
+        self.candidate = None  # Stores the current LCA of the deepest leaves
+
+    def lcaDeepestLeaves(self, root: Optional[TreeNode]) -> Optional[TreeNode]:
+        # Define a helper function for depth-first search (DFS)
+        def dfs(node: Optional[TreeNode], depth: int) -> int:
+            if not node:
+                # Base case: if the node is None, return the current depth
+                return depth
+
+            # Check if the node is a leaf node
+            if not node.left and not node.right:
+                # Update the max depth and LCA candidate if this leaf is deeper
+                if depth + 1 > self.max_depth:
+                    self.max_depth = depth + 1
+                    self.candidate = node
+                # Return the depth of this leaf node
+                return depth + 1
+
+            # Recursively calculate the depths of the left and right subtrees
+            left_depth = dfs(node.left, depth + 1)
+            right_depth = dfs(node.right, depth + 1)
+
+            # If both subtrees have the maximum depth, the current node is the LCA
+            if left_depth == right_depth and left_depth == self.max_depth:
+                self.candidate = node
+
+            # Return the maximum depth of the two subtrees
+            return max(left_depth, right_depth)
+
+        # Start DFS from the root node with an initial depth of -1
+        dfs(root, -1)
+        # Return the LCA of the deepest leaves
+        return self.candidate
+
+```
+
+### 1110. Delete Nodes And Return Forest
+
+```python
+class Solution:
+    def delNodes(self, root: Optional[TreeNode], to_delete: List[int]) -> List[TreeNode]:
+        to_delete_set = set(to_delete)  # Use a set for O(1) lookup
+        forest = []
+
+        def dfs(node: Optional[TreeNode]) -> Optional[TreeNode]:
+            if not node:
+                return None
+
+            # Recursively process left and right subtrees
+            node.left = dfs(node.left)
+            node.right = dfs(node.right)
+
+            # If the current node needs to be deleted
+            if node.val in to_delete_set:
+                # Add its children to the forest if they exist
+                if node.left:
+                    forest.append(node.left)
+                if node.right:
+                    forest.append(node.right)
+                # Return None to signify this node is deleted
+                return None
+
+            return node
+
+        # Start DFS from the root
+        if dfs(root) is not None:
+            forest.append(root)  # Add the root if it's not deleted
+
+        return forest
+
+```
+
+### 2476. Closest Nodes Queries in a Binary Search Tree
+
+```python
+class Solution:
+    def closestNodes(self, root: Optional[TreeNode], queries: List[int]) -> List[List[int]]:
+        # Helper function to perform inorder traversal
+        def inorder(node: Optional[TreeNode], result: List[int]) -> None:
+            if not node:
+                return
+            inorder(node.left, result)  # Visit left subtree
+            result.append(node.val)  # Append the current node's value
+            inorder(node.right, result)  # Visit right subtree
+
+        # Helper function to perform binary search
+        def binary_search(nums: List[int], target: int) -> int:
+            left, right = 0, len(nums) - 1
+            while left <= right:
+                mid = (left + right) // 2
+                if nums[mid] == target:
+                    return mid  # Exact match found
+                if nums[mid] < target:
+                    left = mid + 1  # Move right to find larger values
+                else:
+                    right = mid - 1  # Move left to find smaller values
+            return left  # Return the closest index for query insertion
+
+        # Step 1: Preprocess the BST into a sorted array of values
+        nums = []
+        inorder(root, nums)  # Perform inorder traversal to get sorted values
+
+        # Step 2: Handle each query using binary search
+        result = []
+        for query in queries:
+            index = binary_search(nums, query)
+
+            # Determine closest values
+            if index == len(nums):
+                # All values in BST are smaller than the query
+                result.append([nums[index - 1], -1])
+            elif nums[index] == query:
+                # Exact match for the query
+                result.append([nums[index], nums[index]])
+            elif index == 0:
+                # All values in BST are larger than the query
+                result.append([-1, nums[index]])
+            else:
+                # Query lies between two values
+                result.append([nums[index - 1], nums[index]])
+
+        return result
+
+```
+
+### 222. Count Complete Tree Nodes 
+
+```python
+class Solution:
+    def countNodes(self, root: Optional[TreeNode]) -> int:
+        def getHeight(node: Optional[TreeNode]) -> int:
+            height = 0
+            while node:
+                height += 1
+                node = node.left  # Move to the next level along the leftmost path.
+            return height
+
+        # Base case: if the tree is empty, there are no nodes.
+        if not root:
+            return 0
+
+        # Calculate the height of the left and right subtrees.
+        left_height = getHeight(root.left)
+        right_height = getHeight(root.right)
+
+        # If the left and right subtree heights are the same:
+        # The left subtree is a perfect binary tree.
+        if left_height == right_height:
+            # The total number of nodes is:
+            # - 1 for the current root node.
+            # - The total nodes in the left subtree: 2^left_height - 1.
+            # - Recursively count nodes in the right subtree.
+            return 1 + (2 ** left_height - 1) + self.countNodes(root.right)
+        else:
+            # If the heights are not the same:
+            # The right subtree is a perfect binary tree.
+            # The total number of nodes is:
+            # - 1 for the current root node.
+            # - The total nodes in the right subtree: 2^right_height - 1.
+            # - Recursively count nodes in the left subtree.
+            return 1 + (2 ** right_height - 1) + self.countNodes(root.left)
+
+```
+
+### 235. Lowest Common Ancestor of a Binary Search Tree / 236. Lowest Common Ancestor of a Binary Tree
+
+```python
+class Solution:
+    def lowestCommonAncestor(self, root: 'TreeNode', p: 'TreeNode', q: 'TreeNode') -> 'TreeNode':
+        if not root:
+            return None
+
+        if p.val < root.val and q.val < root.val:
+            return self.lowestCommonAncestor(root.left, p, q)
+
+        if p.val > root.val and q.val > root.val:
+            return self.lowestCommonAncestor(root.right, p, q)
+
+        return root
+        
+
+class Solution:
+    def lowestCommonAncestor(self, root: 'TreeNode', p: 'TreeNode', q: 'TreeNode') -> 'TreeNode':
+        # Base case: if root is None, or root is one of the nodes
+        if not root or root == p or root == q:
+            return root
+
+        # Search left and right subtrees
+        left = self.lowestCommonAncestor(root.left, p, q)
+        right = self.lowestCommonAncestor(root.right, p, q)
+
+        # If both left and right are non-None, root is the LCA
+        if left and right:
+            return root
+
+        # Otherwise, return the non-None result
+        return left if left else right
+
+```
+
+### 437. Path Sum III
+
+```python
+class Solution:
+    """
+    Time Complexity: O(n^2)
+    """
+    def __init__(self):
+        self.num = 0
+
+    def pathSum(self, root: Optional[TreeNode], targetSum: int) -> int:
+        def dfs(node: Optional[TreeNode], cur_sum: int) -> None:
+            if not node:
+                return
+
+            # Add the current node's value to the running sum
+            cur_sum += node.val
+
+            # Check if the current path sum equals the targetSum
+            if cur_sum == targetSum:
+                self.num += 1
+
+            # Continue the search in the left and right subtrees
+            dfs(node.left, cur_sum)
+            dfs(node.right, cur_sum)
+
+        # Start DFS for each node in the tree
+        def dfs_all_paths(node: Optional[TreeNode]) -> None:
+            if not node:
+                return
+
+            # Start a new path from the current node
+            dfs(node, 0)
+
+            # Recur for left and right subtrees
+            dfs_all_paths(node.left)
+            dfs_all_paths(node.right)
+
+        dfs_all_paths(root)
+        return self.num
+
+
+class Solution:
+    """
+    Time Complexity: O(n)
+    """
+    def pathSum(self, root: Optional[TreeNode], targetSum: int) -> int:
+        def dfs(node: Optional[TreeNode], cur_sum: int) -> None:
+            if not node:
+                return
+
+            # Update the current sum
+            cur_sum += node.val
+
+            # Check if there is a prefix sum that forms the target sum
+            self.num += prefix_sums.get(cur_sum - targetSum, 0)
+
+            # Update the prefix sums map
+            prefix_sums[cur_sum] = prefix_sums.get(cur_sum, 0) + 1
+
+            # Recur for left and right subtrees
+            dfs(node.left, cur_sum)
+            dfs(node.right, cur_sum)
+
+            # Backtrack to remove the current node's contribution
+            prefix_sums[cur_sum] -= 1
+
+        # Initialize state
+        self.num = 0
+        prefix_sums = {0: 1}  # Base case: empty path that adds to 0
+        dfs(root, 0)
+        return self.num
+
+```
+
+### 2096. Step-By-Step Directions From a Binary Tree Node to Another
+
+```python
+class Solution:
+    def getDirections(self, root: Optional[TreeNode], startValue: int, destValue: int) -> str:
+        def findPath(node: Optional[TreeNode], target: int, path: List[str]) -> bool:
+            if not node:
+                return False
+            
+            if node.val == target:
+                return True
+
+            # Traverse the left subtree
+            path.append('L')
+            if findPath(node.left, target, path):
+                return True
+            path.pop()
+
+            # Traverse the right subtree
+            path.append('R')
+            if findPath(node.right, target, path):
+                return True
+            path.pop()
+
+            return False
+
+        # Paths to the startValue and destValue
+        start_path, dest_path = [], []
+        findPath(root, startValue, start_path)
+        findPath(root, destValue, dest_path)
+
+        # Find the index of the first differing step (LCA point)
+        i = 0
+        while i < len(start_path) and i < len(dest_path) and start_path[i] == dest_path[i]:
+            i += 1
+
+        # Steps to go up to the LCA
+        up_moves = ['U'] * (len(start_path) - i)
+
+        # Steps to go down to the destination
+        down_moves = dest_path[i:]
+
+        # Combine the moves
+        return ''.join(up_moves + down_moves)
+
+```
+
+### 1080. Insufficient Nodes in Root to Leaf Paths
+
+```python
+class Solution:
+    def sufficientSubset(self, root: Optional[TreeNode], limit: int) -> Optional[TreeNode]:
+        def dfs(node: Optional[TreeNode], curSum: int) -> Optional[TreeNode]:
+            if not node:
+                return None
+
+            curSum += node.val
+
+            # If it's a leaf node
+            if not node.left and not node.right:
+                return None if curSum < limit else node
+
+            # Recursively process left and right subtrees
+            node.left = dfs(node.left, curSum)
+            node.right = dfs(node.right, curSum)
+
+            # If both subtrees are pruned, prune this node as well
+            return node if node.left or node.right else None
+
+        return dfs(root, 0)
+
+```

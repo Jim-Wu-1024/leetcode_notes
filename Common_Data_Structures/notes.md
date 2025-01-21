@@ -1163,3 +1163,82 @@ class Solution:
         return score + low_score
 
 ```
+
+## Linked List
+
+### 1171. Remove Zero Sum Consecutive Nodes from Linked List
+
+```python
+class Solution:
+    def removeZeroSumSublists(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        nums = []
+
+        cur = head
+        while cur:
+            nums.append(cur.val)
+            cur = cur.next
+
+        prefix_sum = 0
+        prefix_map = {}
+        result = []
+        
+        for i in range(len(nums)):
+            prefix_sum += nums[i]
+            
+            if prefix_sum == 0:
+                # Clear result if the sum becomes zero
+                result = []
+                prefix_map = {}
+            elif prefix_sum in prefix_map:
+                # Remove elements contributing to the zero sum
+                index = prefix_map[prefix_sum]
+                result = result[:index + 1]
+
+                # Remove entries from the prefix map that correspond to removed elements
+                prefix_map = {key: val for key, val in prefix_map.items() if val <= index}
+            else:
+                # Append the current element to the result
+                result.append(nums[i])
+                prefix_map[prefix_sum] = len(result) - 1
+            
+        dummy = ListNode()
+        cur = dummy
+        for num in result:
+            cur.next = ListNode(val=num)
+            cur = cur.next
+
+        return dummy.next
+
+
+```
+
+### 1019. Next Greater Node In Linked List
+
+```python
+class Solution:
+    def nextLargerNodes(self, head: Optional[ListNode]) -> List[int]:
+        stack = []  # Stack to store (index, value) of nodes
+        result = []  # Result list
+        index = 0  # Keep track of current index
+
+        # Traverse the linked list
+        current = head
+        while current:
+            # Expand the result list to accommodate the current node
+            result.append(0)
+
+            # Update result for nodes in the stack if current value is larger
+            while stack and current.val > stack[-1][1]:
+                prev_index, _ = stack.pop()
+                result[prev_index] = current.val
+
+            # Push the current node's index and value onto the stack
+            stack.append((index, current.val))
+
+            # Move to the next node
+            current = current.next
+            index += 1
+
+        return result
+
+```
