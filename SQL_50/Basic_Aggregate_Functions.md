@@ -108,3 +108,43 @@ GROUP BY
     month, country
 ```
 
+### [1174. Immediate Food Delivery II](https://leetcode.cn/problems/immediate-food-delivery-ii/)
+
+```mysql
+SELECT
+    ROUND(SUM(order_date = customer_pref_delivery_date) / COUNT(*), 4) * 100 AS immediate_percentage
+FROM
+    Delivery
+WHERE
+    (customer_id, order_date)
+IN
+(
+    SELECT 
+        customer_id, MIN(order_date)
+    FROM
+        Delivery
+    GROUP BY
+        customer_id
+)
+```
+
+### [550. Game Play Analysis IV](https://leetcode.cn/problems/game-play-analysis-iv/)
+
+```mysql
+SELECT 
+    ROUND(SUM(IF(DATEDIFF(event_date, first_date)=1, 1, 0)) / COUNT(DISTINCT a1.player_id), 2) AS fraction
+FROM
+    Activity a1
+LEFT JOIN
+(
+    SELECT
+        player_id, MIN(event_date) AS first_date
+    FROM
+        Activity
+    GROUP BY
+        player_id
+) a2
+ON
+    a1.player_id = a2.player_id
+```
+
