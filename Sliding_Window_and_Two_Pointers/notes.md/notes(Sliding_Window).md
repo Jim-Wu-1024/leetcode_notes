@@ -313,6 +313,39 @@ class Solution:
 
 ```
 
+
+### 1004. Max Consecutive Ones III
+
+```python
+class Solution:
+    def longestOnes(self, nums: List[int], k: int) -> int:
+        # Initialize the count of 0's in the current window
+        freq = 0  
+        # Initialize the maximum length of the window with at most `k` 0's
+        maximum = 0  
+        # Initialize the left pointer of the sliding window
+        left = 0  
+
+        # Iterate through the array using the right pointer
+        for right in range(len(nums)):
+            # Increment `freq` if the current element is 0
+            freq += 1 if nums[right] == 0 else 0  
+
+            # If the count of 0's exceeds `k`, shrink the window from the left
+            while freq > k:
+                # Decrement `freq` if the element at `left` is 0
+                freq -= 1 if nums[left] == 0 else 0  
+                # Move the left pointer to the right
+                left += 1  
+
+            # Update the maximum length of the window
+            maximum = max(maximum, right - left + 1)  
+
+        # Return the maximum length of a valid window
+        return maximum
+
+```
+
 ### 2024. Maximize the Confusion of an Exam
 
 ```python
@@ -335,5 +368,79 @@ class Solution:
             maximum = max(maximum, right - left + 1)
         
         return maximum
+
+```
+
+### 2841. Maximum Sum of Almost Unique Subarray
+
+```python
+class Solution:
+    def maxSum(self, nums: List[int], m: int, k: int) -> int:
+        left = 0  # Initialize the left pointer of the sliding window
+        total = 0  # Track the total sum of the current window
+        maximum = 0  # Track the maximum sum
+        unique = {}  # Dictionary to track the frequency of unique numbers
+
+        for right in range(len(nums)):
+            num = nums[right]  # Add the current number to the window
+            unique[num] = unique.get(num, 0) + 1  # Increment its frequency
+            total += num  # Add the current number to the total sum
+
+            # Check if the window size equals k
+            if right - left + 1 == k:
+                # Check if the number of unique elements is at least m
+                if len(unique) >= m:
+                    maximum = max(maximum, total)  # Update the maximum sum
+
+                # Slide the window by removing the leftmost element
+                remove = nums[left]
+                total -= remove  # Subtract the removed element from the total sum
+                unique[remove] -= 1  # Decrement its frequency
+                if unique[remove] == 0:  # Remove the element if its count is 0
+                    unique.pop(remove)
+                left += 1  # Move the left pointer to the right
+
+        return maximum  # Return the maximum sum found
+
+```
+
+### 1652. Defuse the Bomb
+
+```python
+from typing import List
+
+class Solution:
+    """
+    Time Complexity: O(n)
+    """
+    def decrypt(self, code: List[int], k: int) -> List[int]:
+        n = len(code)  # Length of the input array
+        
+        # If k == 0, return an array of zeros
+        if k == 0:
+            return [0] * n
+        
+        result = [0] * n  # Initialize the result array with zeros
+        curSum = 0  # Current sliding window sum
+        left = 0  # Left pointer of the sliding window
+        
+        # Sliding window setup
+        # We iterate over a range larger than n to simulate circular behavior
+        for right in range(n + abs(k)):
+            curSum += code[right % n]  # Add the current element to the window sum
+            
+            # If the window size exceeds abs(k), shrink it from the left
+            if right - left + 1 > abs(k):
+                curSum -= code[left % n]
+                left += (left + 1) % n  # Move the left pointer forward
+            
+            # When the window size matches abs(k), assign the current sum to the result array
+            if right - left + 1 == abs(k):
+                if k > 0:  # If k > 0, add to the result for the starting index of the window
+                    result[(left - 1) % n] = curSum
+                else:  # If k < 0, add to the result for the ending index of the window
+                    result[(right + 1) % n] = curSum
+        
+        return result
 
 ```

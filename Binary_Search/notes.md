@@ -133,6 +133,43 @@ class Solution:
 
 ```
 
+### 2300. Successful Pairs of Spells and Potions
+
+```python
+class Solution:
+    def successfulPairs(self, spells: List[int], potions: List[int], success: int) -> List[int]:
+        def binary_search(potions: List[int], spell: int, success: int) -> int:
+            left, right = 0, len(potions) - 1
+
+            while left <= right:
+                mid = (left + right) // 2  # Find the midpoint of the current search range
+
+                # Check if the pair is successful
+                if spell * potions[mid] < success:
+                    left = mid + 1  # Search the right half for a valid pair
+                else:
+                    right = mid - 1  # Search the left half for the first valid pair
+
+            # Return the index of the first successful potion
+            return left
+
+        # Sort the potions array for binary search
+        potions.sort()
+        n = len(potions)  # Total number of potions
+
+        # Result array to store the count of successful pairs for each spell
+        result = []
+        for spell in spells:
+            # Find the index of the first successful potion for the current spell
+            index = binary_search(potions, spell, success)
+
+            # Append the count of successful potions (all potions from `index` to the end)
+            result.append(n - index)
+
+        return result
+
+```
+
 ### 69. Sqrt(x)
 
 The square root of any number *x* is always less than or equal to *x//2*.
@@ -466,5 +503,76 @@ class Solution:
 
         # Step 3: Return the minimized total difference
         return (total_diff - max_gain) % MOD
+
+```
+
+### 2563. Count the Number of Fair Pairs
+
+```python
+from typing import List
+
+class Solution:
+    def countFairPairs(self, nums: List[int], lower: int, upper: int) -> int:
+        def binarySearch(num: int, start: int, end: int, target: int, find_lower: bool) -> int:
+            while start <= end:
+                mid = start + (end - start) // 2
+
+                if find_lower:
+                    if num + nums[mid] < target:
+                        start = mid + 1
+                    else:
+                        end = mid - 1
+                else:
+                    if num + nums[mid] > target:
+                        end = mid - 1
+                    else:
+                        start = mid + 1
+
+            return start if find_lower else end
+
+        # Sort the array for binary search
+        nums.sort()
+
+        count = 0
+        n = len(nums)
+
+        # Iterate through each number and find the range of valid pairs
+        for i, num in enumerate(nums):
+            # Find the first index where num + nums[mid] >= lower
+            lower_idx = binarySearch(num, i + 1, n - 1, lower, True)
+
+            # Find the last index where num + nums[mid] <= upper
+            upper_idx = binarySearch(num, i + 1, n - 1, upper, False)
+
+            # Add the count of valid pairs
+            if lower_idx <= upper_idx:
+                count += upper_idx - lower_idx + 1
+
+        return count
+
+
+from typing import List
+
+class Solution:
+    def countFairPairs(self, nums: List[int], lower: int, upper: int) -> int:
+        def countPairsWithSumAtMost(maxSum: int) -> int:
+            totalPairs = 0
+            right = len(nums) - 1  # Pointer to the end of the array
+            
+            for left in range(len(nums)):
+                # Adjust `right` to ensure nums[left] + nums[right] <= maxSum
+                while left < right and nums[left] + nums[right] > maxSum:
+                    right -= 1
+                
+                # Add the count of valid pairs (right - left)
+                totalPairs += max(0, right - left)
+            
+            return totalPairs
+
+        # Sort the array to enable two-pointer traversal
+        nums.sort()
+
+        # Calculate the number of fair pairs in the range [lower, upper]
+        return countPairsWithSumAtMost(upper) - countPairsWithSumAtMost(lower - 1)
 
 ```

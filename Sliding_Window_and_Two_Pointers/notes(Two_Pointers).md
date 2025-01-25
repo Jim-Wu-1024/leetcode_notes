@@ -585,3 +585,135 @@ class Solution:
         return dist  # Return the maximum distance found
 
 ```
+
+### 809. Expressive Words
+
+```python
+class Solution:
+    def expressiveWords(self, s: str, words: List[str]) -> int:
+        # Helper function to determine if 'word' is stretchy compared to 's'
+        def isStretchy(s: str, word: str) -> bool:
+            ps, pw = 0, 0  # Pointers for 's' and 'word'
+
+            while pw < len(word) and ps < len(s):
+                char = word[pw]  # Current character in 'word'
+
+                # Count consecutive occurrences of the current character in 'word'
+                w_num = 0
+                while pw < len(word) and word[pw] == char:
+                    w_num += 1
+                    pw += 1
+
+                # Count consecutive occurrences of the same character in 's'
+                s_num = 0
+                while ps < len(s) and s[ps] == char:
+                    s_num += 1
+                    ps += 1
+
+                # Check stretchy conditions
+                # 1. s_num must be >= w_num
+                # 2. If s_num < 3, it must match w_num exactly
+                if (s_num != w_num and s_num < 3) or w_num > s_num:
+                    return False
+
+            # Both strings must be fully traversed for a match
+            if pw < len(word) or ps < len(s):
+                return False
+
+            return True
+
+        # Count the number of stretchy words
+        count = 0
+        for word in words:
+            if isStretchy(s, word):  # Check if the current word is stretchy
+                count += 1
+
+        return count
+
+
+class Solution:
+    def expressiveWords(self, s: str, words: List[str]) -> int:
+        # Helper function to group characters and their counts
+        def group_counts(s: str):
+            grouped = []
+            i = 0
+            while i < len(s):
+                char = s[i]
+                count = 0
+                while i < len(s) and s[i] == char:
+                    count += 1
+                    i += 1
+                grouped.append((char, count))
+            return grouped
+
+        # Preprocess 's' into groups of characters and counts
+        s_grouped = group_counts(s)
+
+        # Function to check if a word matches the grouped structure of 's'
+        def is_stretchy(word: str) -> bool:
+            word_grouped = group_counts(word)
+
+            # If the grouped structures don't have the same length, return False
+            if len(s_grouped) != len(word_grouped):
+                return False
+
+            # Compare each group
+            for (s_char, s_count), (w_char, w_count) in zip(s_grouped, word_grouped):
+                if s_char != w_char:
+                    return False  # Mismatched characters
+                if s_count < w_count:
+                    return False  # Word group is too long
+                if s_count > w_count and s_count < 3:
+                    return False  # Stretching is invalid
+            return True
+
+        # Count the number of stretchy words
+        return sum(is_stretchy(word) for word in words)
+
+```
+
+### 2337. Move Pieces to Obtain a String
+
+```python
+class Solution:
+    def canChange(self, start: str, target: str) -> bool:
+        s, t = 0, 0  # Pointers for `start` and `target`
+
+        # Iterate through both strings while there are characters left to process
+        while s < len(start) or t < len(target):
+            # Skip underscores in `start`
+            while s < len(start) and start[s] == '_':
+                s += 1
+
+            # Skip underscores in `target`
+            while t < len(target) and target[t] == '_':
+                t += 1
+
+            # If both pointers reach the end, transformation is possible
+            if s >= len(start) and t >= len(target):
+                return True
+
+            # If one string has remaining characters while the other doesn't
+            if (s >= len(start) and t < len(target)) or (t >= len(target) and s < len(start)):
+                return False
+
+            # If the characters at the pointers are different, transformation is not possible
+            if start[s] != target[t]:
+                return False
+
+            # Rule: 'L' can only move left (its index in `start` must be >= its index in `target`)
+            if start[s] == 'L' and s < t:
+                return False
+
+            # Rule: 'R' can only move right (its index in `start` must be <= its index in `target`)
+            if start[s] == 'R' and s > t:
+                return False
+
+            # Move both pointers to the next character
+            s += 1
+            t += 1
+
+        # If all rules are satisfied, return True
+        return True
+
+```
