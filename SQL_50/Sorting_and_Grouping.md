@@ -52,3 +52,91 @@ HAVING
     COUNT(student) >= 5
 ```
 
+### [1729. Find Followers Count](https://leetcode.cn/problems/find-followers-count/)
+
+```mysql
+SELECT 
+    user_id, COUNT(follower_id) AS followers_count
+FROM
+    Followers
+GROUP BY
+    user_id
+ORDER BY
+    user_id ASC
+```
+
+### [619. Biggest Single Number](https://leetcode.cn/problems/biggest-single-number/)
+
+My Answer:
+
+```mysql
+SELECT
+    IF(num = null, null, MAX(num)) AS num 
+FROM
+(
+SELECT 
+    num, COUNT(num) AS cnt 
+FROM
+    MyNumbers
+GROUP BY
+    num
+) t
+WHERE
+    cnt = 1
+```
+
+Good Answer:
+
+```mysql
+SELECT 
+	IF(COUNT(num)=1, num, NULL) AS num
+FROM 
+	MyNumbers
+GROUP BY 
+	num
+ORDER BY 
+	COUNT(num), num DESC
+LIMIT 1
+```
+
+### [1045. Customers Who Bought All Products](https://leetcode.cn/problems/customers-who-bought-all-products/)
+
+My Answer:
+
+```mysql
+SELECT
+    customer_id
+FROM
+(
+SELECT
+    customer_id, COUNT(DISTINCT product_key) AS product_cnt
+FROM
+    Customer
+GROUP BY
+    customer_id
+) t1
+JOIN
+(
+SELECT
+    COUNT(product_key) AS store_cnt
+FROM
+    Product
+) t2
+WHERE
+    t1.product_cnt = t2.store_cnt
+
+```
+
+More Efficient Answer:
+
+```mysql
+SELECT
+	customer_id
+FROM
+	Customer
+GROUP BY
+	customer_id
+HAVING
+	COUNT(DISTINCT(product_key)) = (SELECT COUNT(*) FROM Product)
+```
+
