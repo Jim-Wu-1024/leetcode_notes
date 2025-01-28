@@ -114,3 +114,28 @@ ORDER BY
 LIMIT 1
 ```
 
+### [1907. Count Salary Categories](https://leetcode.cn/problems/count-salary-categories/)
+
+```mysql
+SELECT 
+    "Low Salary" AS category, COUNT(income) AS accounts_count
+FROM 
+    Accounts
+WHERE 
+    income < 20000
+UNION
+SELECT 
+    "Average Salary" AS category, COUNT(income) AS accounts_count
+FROM 
+    Accounts
+WHERE 
+    income <= 50000 AND income >= 20000
+UNION
+SELECT 
+    "High Salary" AS category, COUNT(income) AS accounts_count
+FROM 
+    Accounts
+WHERE 
+    income > 50000
+```
+
