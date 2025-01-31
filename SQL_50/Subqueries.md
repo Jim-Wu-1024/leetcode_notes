@@ -105,3 +105,59 @@ ORDER BY
 LIMIT 1
 ```
 
+### [585. Investments in 2016](https://leetcode.cn/problems/investments-in-2016/)
+
+```mysql
+SELECT  
+    ROUND(SUM(tiv_2016), 2) AS tiv_2016
+FROM
+    Insurance
+WHERE   
+    tiv_2015 IN
+        (
+        SELECT
+            tiv_2015
+        FROM
+            Insurance
+        GROUP BY
+            tiv_2015
+        HAVING
+            COUNT(tiv_2015) > 1
+        )
+    AND
+        CONCAT(lat, lon) IN
+        (
+        SELECT
+            CONCAT(lat, lon)
+        FROM
+            Insurance
+        GROUP BY
+            CONCAT(lat, lon)
+        HAVING
+            COUNT(CONCAT(lat, lon)) = 1
+        )
+
+```
+
+### [185. Department Top Three Salaries](https://leetcode.cn/problems/department-top-three-salaries/)
+
+```mysql
+SELECT
+    t.Department, t.Employee, t.Salary
+FROM
+(
+SELECT
+    d.name AS Department, e.name AS Employee, e.salary AS Salary,
+    DENSE_RANK() OVER (PARTITION BY e.departmentId ORDER BY e.salary DESC)AS rnk
+FROM
+    Employee e 
+LEFT JOIN
+    Department d 
+ON
+    e.departmentId = d.id
+) t
+WHERE
+    rnk <= 3
+```
+
+### 
