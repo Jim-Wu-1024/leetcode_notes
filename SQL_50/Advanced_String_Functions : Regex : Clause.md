@@ -51,3 +51,46 @@ SELECT
            ) AS SecondHighestSalary
 ```
 
+### [1484. Group Sold Products By The Date](https://leetcode.cn/problems/group-sold-products-by-the-date/)
+
+```mysql
+SELECT
+    sell_date, COUNT(DISTINCT product) AS num_sold, GROUP_CONCAT(DISTINCT product ORDER BY product SEPARATOR ',') AS products
+FROM
+    Activities
+GROUP BY
+    sell_date
+ORDER BY    
+    sell_date
+```
+
+### [1327. List the Products Ordered in a Period](https://leetcode.cn/problems/list-the-products-ordered-in-a-period/)
+
+```mysql
+SELECT
+    p.product_name, SUM(o.unit) AS unit
+FROM
+    Products p
+LEFT JOIN
+    Orders o
+ON
+    p.product_id = o.product_id
+WHERE
+    o.order_date BETWEEN "2020-02-01" AND "2020-02-29"
+GROUP BY
+    product_name
+HAVING 
+    unit >= 100
+```
+
+### [1517. Find Users With Valid E-Mails](https://leetcode.cn/problems/find-users-with-valid-e-mails/)
+
+```mysql
+SELECT
+    user_id, name, mail
+FROM
+    Users
+WHERE
+    mail REGEXP '^[a-zA-Z][a-zA-Z0-9_.-]*\\@leetcode\\.com$'
+```
+
